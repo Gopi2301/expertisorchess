@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Crown, Users, GraduationCap, Calendar, TrendingUp, Clock, ChevronRight } from 'lucide-react';
+import { Crown, Users, GraduationCap, Calendar, TrendingUp, Clock, ChevronRight, ShieldCheck } from 'lucide-react';
 import { StatCard } from '../components/ui/Card';
 import { ClassStatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { adminApi } from '../api/admin.api';
 import { classesApi } from '../api/classes.api';
 import { formatDateTime, formatCurrency } from '../utils/format';
+import { useAuth } from '../contexts/AuthContext';
 import type { DashboardSummary, Class } from '../types';
 
 export const Dashboard: React.FC = () => {
+  const { hasRole } = useAuth();
+  const isSuperAdmin = hasRole('SUPER_ADMIN');
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [recentClasses, setRecentClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,13 +28,35 @@ export const Dashboard: React.FC = () => {
     });
   }, []);
 
+  if (!isSuperAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
+        <div className="p-4 bg-bg-muted rounded-full">
+          <ShieldCheck size={48} className="text-text-muted" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-text-primary">Dashboard Restricted</h2>
+          <p className="text-sm text-text-muted mt-1 max-w-sm">
+            This dashboard is currently configured for Super Admins only. 
+            If you believe you should have access, please contact the system administrator.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Dashboard</h1>
-          <p className="text-sm text-text-muted mt-0.5">Welcome back, here's what's happening today.</p>
+          <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
+            <ShieldCheck size={24} className="text-bg-brand" />
+            Super Admin Dashboard
+          </h1>
+          <p className="text-sm text-text-muted mt-0.5">
+            System-wide overview and administrative controls.
+          </p>
         </div>
         <Link to="/classes">
           <Button icon={<Calendar size={16} />}>New Class</Button>

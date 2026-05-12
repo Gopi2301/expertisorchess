@@ -67,9 +67,7 @@ export const AttendancePage: React.FC = () => {
     setRecords(prev => new Map(prev).set(key, status));
   };
 
-  const setRemark = (key: string, remark: string) => {
-    setRemarks(prev => new Map(prev).set(key, remark));
-  };
+
 
   const onSubmit = async () => {
     if (!selectedClassId) return;

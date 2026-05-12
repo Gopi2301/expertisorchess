@@ -15,12 +15,12 @@ import { plansApi } from '../../api/plans.api';
 import { syllabusApi } from '../../api/syllabus.api';
 import { ToastContext } from '../../components/layout/AppLayout';
 import { formatDateTime } from '../../utils/format';
-import type { Class, Coach, Plan, Syllabus } from '../../types';
+import type { Class, Coach, Plan, Syllabus, PlanType } from '../../types';
 
 type ClassForm = {
   title: string; coach_id: string; plan_id: string; syllabus_id?: string;
   scheduled_start: string; scheduled_end: string;
-  max_students: number; meeting_link?: string; class_type: string;
+  max_students: number; meeting_link?: string; class_type: PlanType;
 };
 
 const StatusDotColors: Record<string, string> = {

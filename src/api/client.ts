@@ -1,18 +1,38 @@
 import axios from 'axios';
+import keycloak from '../auth/keycloak';
 
 const apiClient = axios.create({
   baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Keycloak interceptors removed. 
-// If a new auth system is added, attach tokens here.
+// Attach the Keycloak Bearer token to every request.
+// If the token will expire within 30 s, refresh it first.
+apiClient.interceptors.request.use(async (config) => {
+  if (keycloak.authenticated) {
+    try {
+      // Refresh token if it expires within 30 seconds
+      await keycloak.updateToken(30);
+    } catch {
+      // If refresh fails the current (possibly expired) token is still sent;
+      // the 401 response guard below will handle it.
+      console.warn('[apiClient] Token refresh failed');
+    }
+    if (keycloak.token) {
+      config.headers['Authorization'] = `Bearer ${keycloak.token}`;
+    }
+  }
+  return config;
+});
 
-// Unwrap the standard { success, data } envelope
+// Global response error handler
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle 401/403 or other global errors here if needed
+    if (error.response?.status === 401 && keycloak.authenticated) {
+      console.warn('[apiClient] 401 Unauthorized – token may be expired. Logging out.');
+      keycloak.logout();
+    }
     return Promise.reject(error);
   },
 );

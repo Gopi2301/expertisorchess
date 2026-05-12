@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen,
   Calendar, ClipboardList, FileText, ShieldCheck,
-  ChevronLeft, ChevronRight, LogOut, Crown,
+  ChevronLeft, ChevronRight, LogOut, Crown, Layers,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -15,21 +15,21 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { to: '/', icon: <LayoutDashboard size={18} />, label: 'Dashboard', end: true },
+  { to: '/admin', icon: <LayoutDashboard size={18} />, label: 'Dashboard', end: true },
   { to: '/coaches', icon: <Crown size={18} />, label: 'Coaches' },
   { to: '/clients', icon: <Users size={18} />, label: 'Clients' },
   { to: '/students', icon: <GraduationCap size={18} />, label: 'Students' },
   { to: '/classes', icon: <Calendar size={18} />, label: 'Classes' },
+  { to: '/batches', icon: <Layers size={18} />, label: 'Batches' },
   { to: '/plans', icon: <FileText size={18} />, label: 'Plans' },
   { to: '/syllabus', icon: <BookOpen size={18} />, label: 'Syllabus' },
   { to: '/attendance', icon: <ClipboardList size={18} />, label: 'Attendance' },
-  { to: '/admin', icon: <ShieldCheck size={18} />, label: 'Admin' },
+  { to: '/admin/system', icon: <ShieldCheck size={18} />, label: 'System' },
 ];
 
 export const Sidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
 
   return (
     <aside
@@ -87,7 +87,9 @@ export const Sidebar: React.FC = () => {
             </div>
             <div className="min-w-0">
               <p className="text-xs font-medium text-text-primary truncate">{user.name}</p>
-              <p className="text-[10px] text-text-muted">SUPER_ADMIN</p>
+              <p className="text-[10px] text-text-muted">
+                {user.roles.includes('SUPER_ADMIN') ? 'SUPER_ADMIN' : user.roles[0] || 'USER'}
+              </p>
             </div>
           </div>
         )}

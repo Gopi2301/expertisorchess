@@ -40,9 +40,11 @@ export const ClassStatusBadge: React.FC<{ status: ClassStatus }> = ({ status }) 
 
 export const StatusBadge: React.FC<{ status: Status }> = ({ status }) => {
   const map: Record<Status, BadgeVariant> = {
-    ACTIVE: 'success',
+    PENDING:  'warning',
+    ACTIVE:   'success',
     INACTIVE: 'muted',
-    SUSPENDED: 'error',
+    SUSPENDED:'error',
+    REJECTED: 'error',
   };
   return <Badge variant={map[status] ?? 'default'}>{status.charAt(0) + status.slice(1).toLowerCase()}</Badge>;
 };

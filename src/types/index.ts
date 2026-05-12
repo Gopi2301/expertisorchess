@@ -1,6 +1,6 @@
 // ── Enums ────────────────────────────────────────────────────────────────────
 
-export type Status = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+export type Status = 'PENDING' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'REJECTED';
 export type ClassStatus = 'DRAFT' | 'PUBLISHED' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
 export type EnrollmentStatus = 'PENDING' | 'CONFIRMED' | 'DECLINED';
 export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
@@ -21,7 +21,7 @@ export interface Coach {
   blitz_rating?: number;
   experience_years?: number;
   bio?: string;
-  hourly_rate?: string;
+  hourly_rate?: number;
   availability_json?: AvailabilityJson;
   status: Status;
   created_at: string;
@@ -88,6 +88,7 @@ export interface Class {
   id: string;
   coach_id: string;
   plan_id: string;
+  batch_id?: string;
   syllabus_id?: string;
   title: string;
   class_type: PlanType;
@@ -102,6 +103,7 @@ export interface Class {
   updated_at: string;
   coach?: Coach;
   plan?: Plan;
+  batch?: Batch;
   syllabus?: Syllabus;
   students?: StudentClass[];
 }
@@ -115,6 +117,37 @@ export interface StudentClass {
   enrollment_status: EnrollmentStatus;
   student?: Student;
   class?: Class;
+}
+
+export interface Batch {
+  id: string;
+  title: string;
+  coach_id: string;
+  plan_id: string;
+  syllabus_id?: string;
+  status: Status;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string;
+  coach?: Coach;
+  plan?: Plan;
+  syllabus?: Syllabus;
+  classes?: Class[];
+  students?: BatchStudent[];
+  _count?: {
+    students: number;
+    classes: number;
+  };
+}
+
+export interface BatchStudent {
+  id: string;
+  batch_id: string;
+  student_id: string;
+  enrolled_at: string;
+  status: Status;
+  batch?: Batch;
+  student?: Student;
 }
 
 export interface Attendance {
