@@ -13,7 +13,9 @@ import type { Batch } from '../../types';
 import { coachesApi } from '../../api/coaches.api';
 import { plansApi } from '../../api/plans.api';
 import { syllabusApi } from '../../api/syllabus.api';
+import { studentsApi } from '../../api/students.api';
 import { ToastContext } from '../../components/layout/AppLayout';
+import { BatchStudentsDrawer } from './BatchStudentsDrawer';
 
 type BatchForm = {
   title: string;
@@ -21,6 +23,7 @@ type BatchForm = {
   plan_id: string;
   syllabus_id?: string;
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  student_ids?: string[];
 };
 
 export const BatchesList: React.FC = () => {
@@ -33,25 +36,30 @@ export const BatchesList: React.FC = () => {
   const [editTarget, setEditTarget] = useState<Batch | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [viewStudentsBatch, setViewStudentsBatch] = useState<Batch | null>(null);
 
   // For form selects
   const [coaches, setCoaches] = useState<any[]>([]);
   const [plans, setPlans] = useState<any[]>([]);
   const [syllabuses, setSyllabuses] = useState<any[]>([]);
+  const [availableStudents, setAvailableStudents] = useState<any[]>([]);
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<BatchForm>();
 
   useEffect(() => {
     const fetchFormData = async () => {
       try {
-        const [coachRes, planRes, syllabusRes] = await Promise.all([
-          coachesApi.list({ limit: 100 }),
+        const [coachRes, planRes, syllabusRes, studentRes] = await Promise.all([
+          coachesApi.list({ limit: 100, status: 'ACTIVE' }),
           plansApi.list({ limit: 100 }),
           syllabusApi.list({ limit: 100 }),
+          studentsApi.list({ limit: 100, status: 'ACTIVE' }),
         ]);
-        setCoaches(coachRes.data);
+        setCoaches(coachRes.data || []);
         setPlans(planRes.data);
         setSyllabuses(syllabusRes.data);
+        setAvailableStudents(studentRes.data);
       } catch (err) {
         console.error('Failed to fetch form data', err);
       }
@@ -61,12 +69,14 @@ export const BatchesList: React.FC = () => {
 
   const openCreate = () => {
     setEditTarget(null);
+    setSelectedStudentIds([]);
     reset({ status: 'ACTIVE' });
     setModalOpen(true);
   };
 
   const openEdit = (batch: Batch) => {
     setEditTarget(batch);
+    setSelectedStudentIds([]); // We manage students via the drawer for existing batches
     reset({
       title: batch.title,
       coach_id: batch.coach_id,
@@ -84,7 +94,7 @@ export const BatchesList: React.FC = () => {
         await batchesApi.update(editTarget.id, formData);
         addToast('Batch updated successfully', 'success');
       } else {
-        await batchesApi.create(formData);
+        await batchesApi.create({ ...formData, student_ids: selectedStudentIds });
         addToast('Batch created successfully', 'success');
       }
       setModalOpen(false);
@@ -113,11 +123,11 @@ export const BatchesList: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
-            <Layers size={22} className="text-bg-brand" /> Batches
+            <Layers size={22} className="text-bg-brand" /> Groups & Batches
           </h1>
-          <p className="text-sm text-text-muted mt-0.5">{meta?.total ?? 0} total batches</p>
+          <p className="text-sm text-text-muted mt-0.5">Manage student groups, coach assignments, and plans.</p>
         </div>
-        <Button onClick={openCreate} icon={<Plus size={16} />}>Add Batch</Button>
+        <Button onClick={openCreate} icon={<Plus size={16} />}>Create Group</Button>
       </div>
 
       {/* Search */}
@@ -141,13 +151,30 @@ export const BatchesList: React.FC = () => {
               <div>
                 <p className="font-medium text-text-primary text-sm">{row.title}</p>
                 <div className="flex items-center gap-3 mt-1">
-                  <span className="text-xs text-text-muted flex items-center gap-1">
+                  <button 
+                    onClick={() => setViewStudentsBatch(row)}
+                    className="text-xs text-bg-brand hover:underline flex items-center gap-1 font-medium"
+                  >
                     <Users size={12} /> {row._count?.students ?? 0} students
-                  </span>
+                  </button>
                   <span className="text-xs text-text-muted flex items-center gap-1">
                     <BookOpen size={12} /> {row._count?.classes ?? 0} sessions
                   </span>
                 </div>
+                {row.students && row.students.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {row.students.map((bs: any) => (
+                      <span key={bs.id} className="text-[10px] px-1.5 py-0.5 rounded-md bg-bg-muted border border-border text-text-secondary">
+                        {bs.student?.name}
+                      </span>
+                    ))}
+                    {(row._count?.students ?? 0) > row.students.length && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-bg-elevated border border-border text-text-muted italic">
+                        +{(row._count?.students ?? 0) - row.students.length} more
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             ),
           },
@@ -207,6 +234,7 @@ export const BatchesList: React.FC = () => {
           <Select
             label="Coach *" id="batch-coach"
             error={errors.coach_id?.message}
+            placeholder="Select a Coach"
             options={coaches.map(c => ({ value: c.id, label: c.name }))}
             {...register('coach_id', { required: 'Coach is required' })}
           />
@@ -236,6 +264,36 @@ export const BatchesList: React.FC = () => {
             ]}
             {...register('status')}
           />
+
+          {!editTarget && (
+            <div className="col-span-2 space-y-2 mt-2">
+              <label className="text-sm font-medium text-text-primary flex items-center justify-between">
+                Initial Students
+                <span className="text-[10px] text-text-muted bg-bg-muted px-1.5 py-0.5 rounded uppercase">Optional</span>
+              </label>
+              <div className="bg-bg-muted/50 border border-border rounded-lg p-3 max-h-40 overflow-y-auto grid grid-cols-2 gap-2">
+                {availableStudents.length > 0 ? (
+                  availableStudents.map(student => (
+                    <label key={student.id} className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary cursor-pointer transition-colors">
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-border text-bg-brand focus:ring-bg-brand/30 w-4 h-4 bg-bg-elevated"
+                        checked={selectedStudentIds.includes(student.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedStudentIds([...selectedStudentIds, student.id]);
+                          else setSelectedStudentIds(selectedStudentIds.filter(id => id !== student.id));
+                        }}
+                      />
+                      {student.name}
+                    </label>
+                  ))
+                ) : (
+                  <p className="text-xs text-text-muted text-center py-2 col-span-2">No active students found.</p>
+                )}
+              </div>
+              <p className="text-[10px] text-text-muted italic">You can also manage students later by clicking on the student count in the table.</p>
+            </div>
+          )}
         </form>
       </Modal>
 
@@ -250,6 +308,13 @@ export const BatchesList: React.FC = () => {
       >
         <p className="text-sm text-text-secondary">Are you sure you want to delete this batch? This action cannot be undone.</p>
       </Modal>
+
+      {/* Students Management Drawer */}
+      <BatchStudentsDrawer 
+        batch={viewStudentsBatch} 
+        onClose={() => setViewStudentsBatch(null)}
+        onUpdate={refetch}
+      />
     </div>
   );
 };

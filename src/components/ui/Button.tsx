@@ -9,6 +9,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: Size;
   loading?: boolean;
   icon?: React.ReactNode;
+  fullWidth?: boolean;
 }
 
 const variantClasses: Record<Variant, string> = {
@@ -30,6 +31,7 @@ export const Button: React.FC<ButtonProps> = ({
   size = 'md',
   loading,
   icon,
+  fullWidth,
   children,
   disabled,
   className = '',
@@ -40,6 +42,7 @@ export const Button: React.FC<ButtonProps> = ({
     className={`
       inline-flex items-center justify-center transition-all duration-150
       disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer
+      ${fullWidth ? 'w-full' : ''}
       ${variantClasses[variant]} ${sizeClasses[size]} ${className}
     `}
     {...props}

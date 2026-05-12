@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Plus, Pencil, Trash2, Calendar, Search, List, LayoutGrid } from 'lucide-react';
+import { Plus, Pencil, Trash2, Calendar, Search, List, LayoutGrid, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Table } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
@@ -11,6 +11,7 @@ import { Pagination } from '../../components/ui/Pagination';
 import { useApi } from '../../hooks/useApi';
 import { classesApi } from '../../api/classes.api';
 import { coachesApi } from '../../api/coaches.api';
+import { batchesApi } from '../../api/batches';
 import { plansApi } from '../../api/plans.api';
 import { syllabusApi } from '../../api/syllabus.api';
 import { ToastContext } from '../../components/layout/AppLayout';
@@ -20,7 +21,7 @@ import type { Class, Coach, Plan, Syllabus, PlanType } from '../../types';
 type ClassForm = {
   title: string; coach_id: string; plan_id: string; syllabus_id?: string;
   scheduled_start: string; scheduled_end: string;
-  max_students: number; meeting_link?: string; class_type: PlanType;
+  max_students: number; meeting_link?: string; batch_id?: string;
 };
 
 const StatusDotColors: Record<string, string> = {
@@ -40,6 +41,7 @@ export const ClassesList: React.FC = () => {
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [syllabuses, setSyllabuses] = useState<Syllabus[]>([]);
+  const [batches, setBatches] = useState<any[]>([]);
   const [view, setView] = useState<'table' | 'grid'>('grid');
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Class | null>(null);
@@ -52,17 +54,18 @@ export const ClassesList: React.FC = () => {
     coachesApi.list({ limit: 100 }).then(r => setCoaches(r.data)).catch(() => {});
     plansApi.list({ limit: 100 }).then(r => setPlans(r.data)).catch(() => {});
     syllabusApi.list({ limit: 100 }).then(r => setSyllabuses(r.data)).catch(() => {});
+    batchesApi.findAll({ limit: 100 }).then(r => setBatches(r.data)).catch(() => {});
   }, []);
 
   const toLocalInput = (iso: string) => new Date(iso).toISOString().slice(0, 16);
 
-  const openCreate = () => { setEditTarget(null); reset({ class_type: 'INDIVIDUAL', max_students: 1 }); setModalOpen(true); };
+  const openCreate = () => { setEditTarget(null); reset({ max_students: 1, batch_id: '' }); setModalOpen(true); };
   const openEdit = (c: Class) => {
     setEditTarget(c);
     reset({
       title: c.title, coach_id: c.coach_id, plan_id: c.plan_id,
       syllabus_id: c.syllabus_id ?? '', max_students: c.max_students,
-      meeting_link: c.meeting_link ?? '', class_type: c.class_type,
+      meeting_link: c.meeting_link ?? '', batch_id: c.batch_id ?? '',
       scheduled_start: toLocalInput(c.scheduled_start),
       scheduled_end: toLocalInput(c.scheduled_end),
     });
@@ -72,7 +75,14 @@ export const ClassesList: React.FC = () => {
   const onSubmit = async (form: ClassForm) => {
     setSubmitting(true);
     try {
-      const payload = { ...form, max_students: Number(form.max_students) };
+      const payload = { 
+        ...form, 
+        max_students: Number(form.max_students),
+        scheduled_start: new Date(form.scheduled_start).toISOString(),
+        scheduled_end: new Date(form.scheduled_end).toISOString(),
+        class_type: form.batch_id ? 'GROUP' : 'INDIVIDUAL' as any,
+        batch_id: form.batch_id || undefined,
+      };
       if (editTarget) {
         await classesApi.update(editTarget.id, payload);
         addToast('Class updated', 'success');
@@ -99,9 +109,20 @@ export const ClassesList: React.FC = () => {
     } catch { addToast('Failed to delete', 'error'); }
   };
 
+  const onPublish = async (id: string) => {
+    try {
+      await classesApi.publish(id);
+      addToast('Class published', 'success');
+      refetch();
+    } catch (e: any) {
+      addToast(e?.response?.data?.message ?? 'Failed to publish', 'error');
+    }
+  };
+
   const coachOptions = coaches.map(c => ({ value: c.id, label: c.name }));
   const planOptions = plans.map(p => ({ value: p.id, label: `${p.name} (max ${p.max_students})` }));
   const syllabusOptions = [{ value: '', label: '— None —' }, ...syllabuses.map(s => ({ value: s.id, label: s.title }))];
+  const batchOptions = [{ value: '', label: '— Individual Class (No Batch) —' }, ...batches.map(b => ({ value: b.id, label: b.title }))];
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -150,6 +171,10 @@ export const ClassesList: React.FC = () => {
                   <Button variant="ghost" size="sm" onClick={() => openEdit(cls)} icon={<Pencil size={13} />} />
                   <Button variant="ghost" size="sm" onClick={() => setDeleteId(cls.id)} icon={<Trash2 size={13} />}
                     className="hover:text-error-strong" />
+                  {cls.status === 'DRAFT' && (
+                    <Button variant="ghost" size="sm" onClick={() => onPublish(cls.id)} icon={<CheckCircle size={13} />}
+                      className="text-text-success hover:bg-bg-success/10" title="Publish Class" />
+                  )}
                 </div>
               </div>
               <Link to={`/classes/${cls.id}`}>
@@ -158,7 +183,12 @@ export const ClassesList: React.FC = () => {
               <p className="text-xs text-text-muted mt-1">{formatDateTime(cls.scheduled_start)}</p>
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                 <span className="text-xs text-text-muted">Max {cls.max_students} students</span>
-                <span className="text-xs px-2 py-0.5 bg-bg-muted rounded-full text-text-secondary">{cls.class_type}</span>
+                {cls.batch && (
+                  <span className="text-xs px-2 py-0.5 bg-bg-brand/10 rounded-full text-bg-brand font-medium">
+                    Batch: {cls.batch.title}
+                  </span>
+                )}
+                {!cls.batch && <span className="text-xs px-2 py-0.5 bg-bg-muted rounded-full text-text-secondary">{cls.class_type}</span>}
               </div>
             </div>
           ))}
@@ -178,6 +208,10 @@ export const ClassesList: React.FC = () => {
             { key: 'max_students', header: 'Capacity', render: row => `${row.max_students} students` },
             { key: 'actions', header: '', render: row => (
               <div className="flex items-center justify-end gap-1">
+                {row.status === 'DRAFT' && (
+                  <Button variant="ghost" size="sm" onClick={() => onPublish(row.id)} icon={<CheckCircle size={14} />}
+                    className="text-text-success hover:bg-bg-success/10" />
+                )}
                 <Button variant="ghost" size="sm" onClick={() => openEdit(row)} icon={<Pencil size={14} />} />
                 <Button variant="ghost" size="sm" onClick={() => setDeleteId(row.id)} icon={<Trash2 size={14} />}
                   className="hover:text-error-strong hover:bg-bg-error" />
@@ -219,9 +253,9 @@ export const ClassesList: React.FC = () => {
             error={errors.plan_id?.message}
             {...register('plan_id', { required: 'Plan is required' })} />
           <Select label="Syllabus" id="cls-syllabus" options={syllabusOptions} {...register('syllabus_id')} />
-          <Select label="Class Type" id="cls-type"
-            options={[{ value: 'INDIVIDUAL', label: 'Individual' }, { value: 'GROUP', label: 'Group' }]}
-            {...register('class_type')} />
+          <Select label="Batch (Auto-Enroll Students)" id="cls-batch"
+            options={batchOptions}
+            {...register('batch_id')} />
           <Input label="Start *" id="cls-start" type="datetime-local" error={errors.scheduled_start?.message}
             {...register('scheduled_start', { required: 'Start time is required' })} />
           <Input label="End *" id="cls-end" type="datetime-local" error={errors.scheduled_end?.message}

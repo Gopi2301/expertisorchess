@@ -7,6 +7,7 @@ import { CoachesList } from './pages/coaches/CoachesList';
 import { ClientsList } from './pages/clients/ClientsList';
 import { StudentsList } from './pages/students/StudentsList';
 import { ClassesList } from './pages/classes/ClassesList';
+import { ClassDetails } from './pages/classes/ClassDetails';
 import { PlansList } from './pages/plans/PlansList';
 import { BatchesList } from './pages/batches/BatchesList';
 import { SyllabusList } from './pages/syllabus/SyllabusList';
@@ -90,6 +91,7 @@ const ProtectedApp: React.FC = () => (
           <Route path="/clients"    element={<ClientsList />} />
           <Route path="/students"   element={<StudentsList />} />
           <Route path="/classes"    element={<ClassesList />} />
+          <Route path="/classes/:id" element={<ClassDetails />} />
           <Route path="/plans"      element={<PlansList />} />
           <Route path="/batches"    element={<BatchesList />} />
           <Route path="/syllabus"   element={<SyllabusList />} />

@@ -40,6 +40,9 @@ export interface Client {
   created_at: string;
   updated_at: string;
   students?: Student[];
+  _count?: {
+    students: number;
+  };
 }
 
 export interface Student {
@@ -220,6 +223,7 @@ export interface PaginationParams {
   page?: number;
   limit?: number;
   search?: string;
+  status?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }

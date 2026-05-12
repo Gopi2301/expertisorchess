@@ -101,7 +101,30 @@ export const ClientsList: React.FC = () => {
               </div>
             ),
           },
-          { key: 'phone', header: 'Phone', render: row => row.phone ?? '—' },
+          {
+            key: 'phone', header: 'Phone', render: row => row.phone ?? '—'
+          },
+          {
+            key: 'students', header: 'Students',
+            render: row => (
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-full bg-bg-brand/10 text-bg-brand text-xs font-semibold">
+                  {row._count?.students ?? 0}
+                </span>
+                <div className="flex flex-wrap gap-1 max-w-[200px]">
+                  {row.students && row.students.length > 0 ? (
+                    row.students.map(s => (
+                      <span key={s.id} className="text-[10px] leading-tight text-text-secondary bg-bg-strong px-1.5 py-0.5 rounded border border-border truncate max-w-[80px]">
+                        {s.name}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-text-muted">None</span>
+                  )}
+                </div>
+              </div>
+            ),
+          },
           { key: 'created_at', header: 'Joined', render: row => formatDate(row.created_at) },
           {
             key: 'actions', header: '',

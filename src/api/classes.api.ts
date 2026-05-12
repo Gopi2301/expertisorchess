@@ -17,6 +17,9 @@ export const classesApi = {
   delete: (id: string) =>
     apiClient.delete(`/classes/${id}`).then(r => r.data),
 
+  publish: (id: string) =>
+    apiClient.post(`/classes/${id}/publish`).then(r => r.data),
+
   // Enrollment
   getEnrollments: (classId: string) =>
     apiClient.get<ApiResponse<StudentClass[]>>(`/classes/${classId}/students`).then(r => r.data),
