@@ -17,4 +17,7 @@ export const attendanceApi = {
       `/attendance/class/${classId}/bulk`,
       { records },
     ).then(r => r.data),
+
+  getByBatch: (batchId: string) =>
+    apiClient.get<ApiResponse<Attendance[]>>(`/attendance/batch/${batchId}`).then(r => r.data),
 };

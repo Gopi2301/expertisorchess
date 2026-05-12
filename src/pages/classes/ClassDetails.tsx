@@ -3,22 +3,29 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   Calendar, Clock, User, BookOpen, Users, 
   ExternalLink, ArrowLeft, Pencil, Trash2, 
-  CheckCircle, XCircle, AlertCircle, Play
+  CheckCircle, XCircle, AlertCircle, Play,
+  ClipboardCheck, MessageSquare
 } from 'lucide-react';
 import { classesApi } from '../../api/classes.api';
+import { attendanceApi, type AttendanceRecord } from '../../api/attendance.api';
 import { Button } from '../../components/ui/Button';
-import { ClassStatusBadge } from '../../components/ui/Badge';
-import { formatDateTime } from '../../utils/format';
+import { ClassStatusBadge, AttendanceBadge } from '../../components/ui/Badge';
+import { formatDateTime, getInitials } from '../../utils/format';
 import { ToastContext } from '../../components/layout/AppLayout';
-import type { Class, StudentClass } from '../../types';
+import type { Class, StudentClass, Attendance, AttendanceStatus } from '../../types';
 
 export const ClassDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToast } = useContext(ToastContext);
   const [classData, setClassData] = useState<Class | null>(null);
+  const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
+  const [savingAttendance, setSavingAttendance] = useState(false);
+  const [isAttendanceMode, setIsAttendanceMode] = useState(false);
+  const [attRecords, setAttRecords] = useState<Map<string, AttendanceStatus>>(new Map());
+  const [attRemarks, setAttRemarks] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
     if (id) {
@@ -29,14 +36,75 @@ export const ClassDetails: React.FC = () => {
   const fetchClass = async () => {
     try {
       setLoading(true);
-      const res = await classesApi.get(id!);
-      setClassData(res.data);
+      const [classRes, attendanceRes] = await Promise.all([
+        classesApi.get(id!),
+        attendanceApi.getByClass(id!),
+      ]);
+      
+      const cls = classRes.data;
+      setClassData(cls);
+      const att = attendanceRes.data;
+      setAttendance(att);
+
+      // Initialize attendance map
+      const map = new Map<string, AttendanceStatus>();
+      const remMap = new Map<string, string>();
+
+      att.forEach(a => {
+        const key = a.student_id ? `s:${a.student_id}` : `c:${a.coach_id}`;
+        map.set(key, a.attendance_status);
+        if (a.remarks) remMap.set(key, a.remarks);
+      });
+
+      // Default to PRESENT for enrolled students if not marked
+      const students = cls.students?.length ? cls.students : (cls.batch?.students?.map(bs => ({ student_id: bs.student_id })) || []);
+      students.forEach((sc: any) => {
+        const key = `s:${sc.student_id}`;
+        if (!map.has(key)) map.set(key, 'PRESENT');
+      });
+
+      // Default coach to PRESENT
+      if (cls.coach_id) {
+        const key = `c:${cls.coach_id}`;
+        if (!map.has(key)) map.set(key, 'PRESENT');
+      }
+
+      setAttRecords(map);
+      setAttRemarks(remMap);
     } catch (error) {
       addToast('Failed to load class details', 'error');
       navigate('/classes');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSaveAttendance = async () => {
+    if (!id) return;
+    try {
+      setSavingAttendance(true);
+      const records: AttendanceRecord[] = [];
+      attRecords.forEach((status, key) => {
+        const [type, pid] = key.split(':');
+        records.push({
+          ...(type === 's' ? { student_id: pid } : { coach_id: pid }),
+          attendance_status: status,
+          remarks: attRemarks.get(key) || undefined,
+        });
+      });
+      await attendanceApi.bulkMark(id, records);
+      addToast('Attendance saved successfully', 'success');
+      setIsAttendanceMode(false);
+      fetchClass();
+    } catch (error: any) {
+      addToast(error?.response?.data?.message ?? 'Failed to save attendance', 'error');
+    } finally {
+      setSavingAttendance(false);
+    }
+  };
+
+  const setStatus = (key: string, status: AttendanceStatus) => {
+    setAttRecords(prev => new Map(prev).set(key, status));
   };
 
   const handlePublish = async () => {
@@ -187,13 +255,62 @@ export const ClassDetails: React.FC = () => {
           <div className="bg-bg-strong border border-border rounded-xl shadow-sm overflow-hidden">
             <div className="p-6 border-b border-border flex items-center justify-between">
               <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-                <Users size={18} className="text-bg-brand" /> Enrolled Students
+                <Users size={18} className="text-bg-brand" /> 
+                {isAttendanceMode ? 'Mark Attendance' : 'Enrolled Students'}
               </h2>
-              <span className="text-xs font-medium px-2 py-1 bg-bg-muted rounded-full text-text-secondary">
-                {classData.students?.length || 0} / {classData.max_students}
-              </span>
+              <div className="flex items-center gap-2">
+                {isAttendanceMode ? (
+                  <>
+                    <Button size="sm" variant="ghost" onClick={() => setIsAttendanceMode(false)}>Cancel</Button>
+                    <Button size="sm" variant="primary" onClick={handleSaveAttendance} loading={savingAttendance} icon={<CheckCircle size={14} />}>
+                      Save
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button size="sm" variant="ghost" onClick={() => setIsAttendanceMode(true)} icon={<ClipboardCheck size={14} />}>
+                      Mark Attendance
+                    </Button>
+                    <span className="text-xs font-medium px-2 py-1 bg-bg-muted rounded-full text-text-secondary">
+                      {classData.students?.length || 0} / {classData.max_students}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
             <div className="divide-y divide-border">
+              {/* Coach Row (Only in Attendance Mode) */}
+              {isAttendanceMode && classData.coach && (
+                <div className="p-4 bg-bg-brand/5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-bg-brand text-text-on-brand flex items-center justify-center font-bold">
+                      {getInitials(classData.coach.name)}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-text-primary">{classData.coach.name}</p>
+                      <p className="text-xs text-bg-brand font-medium">Coach</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    {(['PRESENT', 'ABSENT', 'LATE'] as AttendanceStatus[]).map(status => (
+                      <button
+                        key={status}
+                        onClick={() => setStatus(`c:${classData.coach_id}`, status)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          attRecords.get(`c:${classData.coach_id}`) === status
+                            ? status === 'PRESENT' ? 'bg-bg-success text-text-success border border-green-800' :
+                              status === 'ABSENT' ? 'bg-bg-error text-error-strong border border-red-900' :
+                              'bg-yellow-950 text-warning border border-yellow-800'
+                            : 'bg-bg-strong text-text-muted hover:bg-bg-muted'
+                        }`}
+                      >
+                        {status.charAt(0)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {(() => {
                 const students = classData.students && classData.students.length > 0 
                   ? classData.students 
@@ -205,36 +322,70 @@ export const ClassDetails: React.FC = () => {
                     })) || []);
 
                 if (students.length > 0) {
-                  return (students as any[]).map((enrollment) => (
-                    <div key={enrollment.id} className="p-4 flex items-center justify-between hover:bg-bg-muted/30 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-bg-brand/10 flex items-center justify-center text-bg-brand font-bold">
-                          {enrollment.student.name.charAt(0)}
+                  return (students as any[]).map((enrollment) => {
+                    const studentId = enrollment.student.id;
+                    const key = `s:${studentId}`;
+                    const currentStatus = attRecords.get(key);
+                    const existingAtt = attendance.find(a => a.student_id === studentId);
+
+                    return (
+                      <div key={enrollment.id} className="p-4 flex items-center justify-between hover:bg-bg-muted/30 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-bg-muted flex items-center justify-center text-text-secondary font-bold">
+                            {getInitials(enrollment.student.name)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-text-primary">{enrollment.student.name}</p>
+                            <p className="text-xs text-text-muted">{enrollment.student.chess_level}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-semibold text-text-primary">{enrollment.student.name}</p>
-                          <p className="text-xs text-text-muted">{enrollment.student.chess_level}</p>
-                        </div>
+                        
+                        {isAttendanceMode ? (
+                          <div className="flex gap-1">
+                            {(['PRESENT', 'ABSENT', 'LATE', 'EXCUSED'] as AttendanceStatus[]).map(status => (
+                              <button
+                                key={status}
+                                onClick={() => setStatus(key, status)}
+                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                                  currentStatus === status
+                                    ? status === 'PRESENT' ? 'bg-bg-success text-text-success border border-green-800' :
+                                      status === 'ABSENT' ? 'bg-bg-error text-error-strong border border-red-900' :
+                                      status === 'LATE' ? 'bg-yellow-950 text-warning border border-yellow-800' :
+                                      'bg-bg-muted text-text-muted border border-border'
+                                    : 'bg-bg-strong text-text-muted hover:bg-bg-muted'
+                                }`}
+                                title={status}
+                              >
+                                {status.charAt(0)}
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-4">
+                            {existingAtt ? (
+                              <AttendanceBadge status={existingAtt.attendance_status} />
+                            ) : (
+                              <div className="flex items-center gap-1.5">
+                                {enrollment.enrollment_status === 'CONFIRMED' ? (
+                                  <span className="flex items-center gap-1 text-xs text-text-success font-medium">
+                                    <CheckCircle size={14} /> Confirmed
+                                  </span>
+                                ) : enrollment.enrollment_status === 'PENDING' ? (
+                                  <span className="flex items-center gap-1 text-xs text-text-warning font-medium">
+                                    <Clock size={14} /> Pending
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center gap-1 text-xs text-error-strong font-medium">
+                                    <XCircle size={14} /> Declined
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5">
-                          {enrollment.enrollment_status === 'CONFIRMED' ? (
-                            <span className="flex items-center gap-1 text-xs text-text-success font-medium">
-                              <CheckCircle size={14} /> Confirmed
-                            </span>
-                          ) : enrollment.enrollment_status === 'PENDING' ? (
-                            <span className="flex items-center gap-1 text-xs text-text-warning font-medium">
-                              <Clock size={14} /> Pending
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1 text-xs text-error-strong font-medium">
-                              <XCircle size={14} /> Declined
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ));
+                    );
+                  });
                 }
 
                 return (

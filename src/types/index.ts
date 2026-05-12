@@ -109,6 +109,9 @@ export interface Class {
   batch?: Batch;
   syllabus?: Syllabus;
   students?: StudentClass[];
+  _count?: {
+    students: number;
+  };
 }
 
 export interface StudentClass {

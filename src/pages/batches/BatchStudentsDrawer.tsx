@@ -2,8 +2,9 @@ import React, { useEffect, useState, useContext } from 'react';
 import { X, Users, Plus, Trash2, Search, UserPlus, Loader2 } from 'lucide-react';
 import { batchesApi } from '../../api/batches';
 import { studentsApi } from '../../api/students.api';
+import { attendanceApi } from '../../api/attendance.api';
 import { ToastContext } from '../../components/layout/AppLayout';
-import type { Batch, Student } from '../../types';
+import type { Batch, Student, Attendance } from '../../types';
 import { Button } from '../../components/ui/Button';
 
 interface BatchStudentsDrawerProps {
@@ -16,6 +17,7 @@ export const BatchStudentsDrawer: React.FC<BatchStudentsDrawerProps> = ({ batch,
   const { addToast } = useContext(ToastContext);
   const [students, setStudents] = useState<any[]>([]);
   const [availableStudents, setAvailableStudents] = useState<Student[]>([]);
+  const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [loading, setLoading] = useState(false);
   const [enrolling, setEnrolling] = useState<string | null>(null);
   const [unenrolling, setUnenrolling] = useState<string | null>(null);
@@ -26,10 +28,14 @@ export const BatchStudentsDrawer: React.FC<BatchStudentsDrawerProps> = ({ batch,
     if (!batch) return;
     setLoading(true);
     try {
-      const res = await batchesApi.findOne(batch.id);
-      setStudents(res.data.students || []);
+      const [batchRes, attRes] = await Promise.all([
+        batchesApi.findOne(batch.id),
+        attendanceApi.getByBatch(batch.id),
+      ]);
+      setStudents(batchRes.data.students || []);
+      setAttendance(attRes.data || []);
     } catch (err) {
-      console.error('Failed to fetch batch students', err);
+      console.error('Failed to fetch batch data', err);
     } finally {
       setLoading(false);
     }
@@ -186,27 +192,65 @@ export const BatchStudentsDrawer: React.FC<BatchStudentsDrawerProps> = ({ batch,
           ) : (
             <div className="space-y-3">
               {students.length > 0 ? (
-                students.map(bs => (
-                  <div key={bs.id} className="flex items-center justify-between bg-bg-muted/30 border border-border rounded-xl p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-bg-elevated flex items-center justify-center text-text-secondary text-xs font-bold border border-border">
-                        {bs.student?.name?.charAt(0) || 'S'}
+                students.map(bs => {
+                  const studentId = bs.student_id;
+                  const studentAtt = attendance.filter(a => a.student_id === studentId);
+                  const presentCount = studentAtt.filter(a => a.attendance_status === 'PRESENT' || a.attendance_status === 'LATE').length;
+                  const percentage = studentAtt.length > 0 ? Math.round((presentCount / studentAtt.length) * 100) : null;
+
+                  return (
+                    <div key={bs.id} className="bg-bg-muted/30 border border-border rounded-xl p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-bg-elevated flex items-center justify-center text-text-secondary text-sm font-bold border border-border shadow-sm">
+                            {bs.student?.name?.charAt(0) || 'S'}
+                          </div>
+                          <div>
+                            <p className="text-sm text-text-primary font-bold">{bs.student?.name}</p>
+                            <p className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">
+                              {bs.student?.chess_level}
+                            </p>
+                          </div>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => onUnenroll(bs.student_id)}
+                          loading={unenrolling === bs.student_id}
+                          icon={<Trash2 size={14} />}
+                          className="text-text-muted hover:text-error-strong hover:bg-bg-error/10 h-8 w-8 !p-0"
+                        />
                       </div>
-                      <div>
-                        <p className="text-sm text-text-primary font-medium">{bs.student?.name}</p>
-                        <p className="text-[10px] text-text-muted">Enrolled {new Date(bs.enrolled_at).toLocaleDateString()}</p>
+                      
+                      <div className="flex items-center justify-between gap-4 pt-1">
+                        <div className="flex-1 space-y-1">
+                          <div className="flex justify-between items-center text-[10px] font-bold uppercase text-text-muted">
+                            <span>Attendance</span>
+                            <span className={percentage !== null ? (percentage > 80 ? 'text-text-success' : percentage > 50 ? 'text-warning' : 'text-error-strong') : ''}>
+                              {percentage !== null ? `${percentage}%` : 'No records'}
+                            </span>
+                          </div>
+                          <div className="w-full bg-bg-elevated h-1.5 rounded-full overflow-hidden border border-border/50">
+                            <div 
+                              className={`h-full transition-all duration-1000 ${
+                                percentage !== null 
+                                  ? percentage > 80 ? 'bg-bg-success' : percentage > 50 ? 'bg-warning' : 'bg-error-strong'
+                                  : 'bg-bg-muted'
+                              }`}
+                              style={{ width: `${percentage ?? 0}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-[10px] text-text-muted font-medium">Joined</p>
+                          <p className="text-[11px] text-text-primary font-bold">
+                            {new Date(bs.enrolled_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      onClick={() => onUnenroll(bs.student_id)}
-                      loading={unenrolling === bs.student_id}
-                      icon={<Trash2 size={14} />}
-                      className="text-text-muted hover:text-error-strong hover:bg-bg-error/10"
-                    />
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="text-center py-20">
                   <div className="w-12 h-12 bg-bg-muted rounded-full flex items-center justify-center mx-auto mb-3">
