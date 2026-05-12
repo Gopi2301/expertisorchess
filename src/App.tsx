@@ -11,6 +11,7 @@ import { ClassDetails } from './pages/classes/ClassDetails';
 import { PlansList } from './pages/plans/PlansList';
 import { BatchesList } from './pages/batches/BatchesList';
 import { SyllabusList } from './pages/syllabus/SyllabusList';
+import { SyllabusDetails } from './pages/syllabus/SyllabusDetails';
 import { AttendancePage } from './pages/attendance/AttendancePage';
 import { AdminPanel } from './pages/admin/AdminPanel';
 import { CoachOnboarding } from './pages/public/CoachOnboarding';
@@ -95,6 +96,7 @@ const ProtectedApp: React.FC = () => (
           <Route path="/plans"      element={<PlansList />} />
           <Route path="/batches"    element={<BatchesList />} />
           <Route path="/syllabus"   element={<SyllabusList />} />
+          <Route path="/syllabus/:id" element={<SyllabusDetails />} />
           <Route path="/attendance" element={<AttendancePage />} />
         </Route>
       </Routes>

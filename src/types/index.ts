@@ -22,6 +22,7 @@ export interface Coach {
   experience_years?: number;
   bio?: string;
   hourly_rate?: number;
+  current_syllabus?: string;
   availability_json?: AvailabilityJson;
   status: Status;
   created_at: string;

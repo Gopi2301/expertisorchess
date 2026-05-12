@@ -20,6 +20,7 @@ type FormData = {
   name: string; email: string; phone?: string;
   fide_rating?: number; rapid_rating?: number; blitz_rating?: number;
   experience_years?: number; bio?: string; hourly_rate?: number;
+  current_syllabus?: string;
 };
 
 type Step = 'hero' | 'signup' | 'form' | 'success';
@@ -113,6 +114,7 @@ export const CoachOnboarding: React.FC = () => {
         rapid_rating: data.rapid_rating ? Number(data.rapid_rating) : undefined,
         blitz_rating: data.blitz_rating ? Number(data.blitz_rating) : undefined,
         experience_years: data.experience_years ? Number(data.experience_years) : undefined,
+        current_syllabus: data.current_syllabus,
       });
       setStep('success');
     } catch (e: any) {
@@ -301,6 +303,13 @@ export const CoachOnboarding: React.FC = () => {
                         placeholder="500"
                         className={inputCls(false)} />
                     </Field>
+                    <div className="md:col-span-2">
+                      <Field label="Current Handling Syllabus" icon={<BookOpen size={14} />}>
+                        <input {...register('current_syllabus')}
+                          placeholder="e.g. Beginner to Intermediate / Endgame Masterclass"
+                          className={inputCls(false)} />
+                      </Field>
+                    </div>
                   </div>
                 </div>
 

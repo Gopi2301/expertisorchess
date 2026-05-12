@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Plus, Pencil, Trash2, Calendar, Search, List, LayoutGrid, CheckCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Calendar, Search, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Table } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
@@ -24,13 +24,7 @@ type ClassForm = {
   max_students: number; meeting_link?: string; batch_id?: string;
 };
 
-const StatusDotColors: Record<string, string> = {
-  DRAFT: 'bg-text-muted',
-  PUBLISHED: 'bg-bg-brand',
-  ONGOING: 'bg-text-success',
-  COMPLETED: 'bg-text-secondary',
-  CANCELLED: 'bg-error-strong',
-};
+
 
 export const ClassesList: React.FC = () => {
   const { addToast } = useContext(ToastContext);
@@ -42,7 +36,6 @@ export const ClassesList: React.FC = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [syllabuses, setSyllabuses] = useState<Syllabus[]>([]);
   const [batches, setBatches] = useState<any[]>([]);
-  const [view, setView] = useState<'table' | 'grid'>('grid');
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Class | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -134,10 +127,6 @@ export const ClassesList: React.FC = () => {
           <p className="text-sm text-text-muted mt-0.5">{meta?.total ?? 0} total classes</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setView('grid')} icon={<LayoutGrid size={15} />}
-            className={view === 'grid' ? 'text-bg-brand' : ''} />
-          <Button variant="ghost" size="sm" onClick={() => setView('table')} icon={<List size={15} />}
-            className={view === 'table' ? 'text-bg-brand' : ''} />
           <Button onClick={openCreate} icon={<Plus size={16} />}>Add Class</Button>
         </div>
       </div>
@@ -151,75 +140,38 @@ export const ClassesList: React.FC = () => {
         />
       </div>
 
-      {/* Grid View */}
-      {view === 'grid' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {loading ? Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-bg-strong border border-border rounded-xl p-5 animate-pulse space-y-3">
-              <div className="h-4 bg-bg-elevated rounded w-3/4" />
-              <div className="h-3 bg-bg-elevated rounded w-1/2" />
-              <div className="h-3 bg-bg-elevated rounded w-2/3" />
+      <Table<Class>
+        loading={loading} data={data} emptyMessage="No classes found."
+        columns={[
+          { key: 'title', header: 'Title', render: row => (
+            <Link to={`/classes/${row.id}`} className="font-medium text-text-primary hover:text-bg-brand">{row.title}</Link>
+          ) },
+          { key: 'status', header: 'Status', render: row => <ClassStatusBadge status={row.status} /> },
+          { key: 'scheduled_start', header: 'Scheduled', render: row => formatDateTime(row.scheduled_start) },
+          { key: 'max_students', header: 'Capacity', render: row => `${row.max_students} students` },
+          {
+            key: 'batch',
+            header: 'Batch',
+            render: row => row.batch ? (
+              <span className="text-xs px-2 py-0.5 bg-bg-brand/10 rounded-full text-bg-brand font-medium">
+                {row.batch.title}
+              </span>
+            ) : <span className="text-xs text-text-muted">—</span>
+          },
+          { key: 'actions', header: '', render: row => (
+            <div className="flex items-center justify-end gap-1">
+              {row.status === 'DRAFT' && (
+                <Button variant="ghost" size="sm" onClick={() => onPublish(row.id)} icon={<CheckCircle size={14} />}
+                  className="text-text-success hover:bg-bg-success/10" />
+              )}
+              <Button variant="ghost" size="sm" onClick={() => openEdit(row)} icon={<Pencil size={14} />} />
+              <Button variant="ghost" size="sm" onClick={() => setDeleteId(row.id)} icon={<Trash2 size={14} />}
+                className="hover:text-error-strong hover:bg-bg-error" />
             </div>
-          )) : data.map(cls => (
-            <div key={cls.id} className="bg-bg-strong border border-border rounded-xl p-5 hover:border-border-strong transition-colors card-hover">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${StatusDotColors[cls.status]}`} />
-                  <ClassStatusBadge status={cls.status} />
-                </div>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="sm" onClick={() => openEdit(cls)} icon={<Pencil size={13} />} />
-                  <Button variant="ghost" size="sm" onClick={() => setDeleteId(cls.id)} icon={<Trash2 size={13} />}
-                    className="hover:text-error-strong" />
-                  {cls.status === 'DRAFT' && (
-                    <Button variant="ghost" size="sm" onClick={() => onPublish(cls.id)} icon={<CheckCircle size={13} />}
-                      className="text-text-success hover:bg-bg-success/10" title="Publish Class" />
-                  )}
-                </div>
-              </div>
-              <Link to={`/classes/${cls.id}`}>
-                <h3 className="font-semibold text-text-primary hover:text-bg-brand transition-colors">{cls.title}</h3>
-              </Link>
-              <p className="text-xs text-text-muted mt-1">{formatDateTime(cls.scheduled_start)}</p>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                <span className="text-xs text-text-muted">Max {cls.max_students} students</span>
-                {cls.batch && (
-                  <span className="text-xs px-2 py-0.5 bg-bg-brand/10 rounded-full text-bg-brand font-medium">
-                    Batch: {cls.batch.title}
-                  </span>
-                )}
-                {!cls.batch && <span className="text-xs px-2 py-0.5 bg-bg-muted rounded-full text-text-secondary">{cls.class_type}</span>}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+          ) },
+        ]}
+      />
 
-      {/* Table View */}
-      {view === 'table' && (
-        <Table<Class>
-          loading={loading} data={data} emptyMessage="No classes found."
-          columns={[
-            { key: 'title', header: 'Title', render: row => (
-              <Link to={`/classes/${row.id}`} className="font-medium text-text-primary hover:text-bg-brand">{row.title}</Link>
-            ) },
-            { key: 'status', header: 'Status', render: row => <ClassStatusBadge status={row.status} /> },
-            { key: 'scheduled_start', header: 'Scheduled', render: row => formatDateTime(row.scheduled_start) },
-            { key: 'max_students', header: 'Capacity', render: row => `${row.max_students} students` },
-            { key: 'actions', header: '', render: row => (
-              <div className="flex items-center justify-end gap-1">
-                {row.status === 'DRAFT' && (
-                  <Button variant="ghost" size="sm" onClick={() => onPublish(row.id)} icon={<CheckCircle size={14} />}
-                    className="text-text-success hover:bg-bg-success/10" />
-                )}
-                <Button variant="ghost" size="sm" onClick={() => openEdit(row)} icon={<Pencil size={14} />} />
-                <Button variant="ghost" size="sm" onClick={() => setDeleteId(row.id)} icon={<Trash2 size={14} />}
-                  className="hover:text-error-strong hover:bg-bg-error" />
-              </div>
-            ) },
-          ]}
-        />
-      )}
 
       {meta && (
         <Pagination

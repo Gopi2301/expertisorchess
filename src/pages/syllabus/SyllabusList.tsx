@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Plus, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { Table } from '../../components/ui/Table';
@@ -57,7 +58,7 @@ export const SyllabusList: React.FC = () => {
       <Table<Syllabus>
         loading={loading} data={data} emptyMessage="No syllabus found."
         columns={[
-          { key: 'title', header: 'Title', render: row => <span className="font-medium text-text-primary">{row.title}</span> },
+          { key: 'title', header: 'Title', render: row => <Link to={`/syllabus/${row.id}`} className="font-medium text-bg-brand hover:underline">{row.title}</Link> },
           { key: 'description', header: 'Description', render: row => <span className="text-text-muted text-sm truncate max-w-xs block">{row.description ?? '—'}</span> },
           { key: 'created_at', header: 'Created', render: row => formatDate(row.created_at) },
           { key: 'actions', header: '', render: row => (

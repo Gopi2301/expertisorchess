@@ -102,6 +102,7 @@ export const CoachActivityDrawer: React.FC<CoachActivityDrawerProps> = ({ coach,
                   { label: 'Blitz', value: activity.coach.blitz_rating ? `${activity.coach.blitz_rating}` : null },
                   { label: 'Experience', value: activity.coach.experience_years ? `${activity.coach.experience_years} years` : null },
                   { label: 'Rate', value: activity.coach.hourly_rate ? `₹${activity.coach.hourly_rate.toLocaleString()}/hr` : null },
+                  { label: 'Syllabus', value: activity.coach.current_syllabus },
                 ].filter(r => r.value).map(({ label, value }) => (
                   <div key={label} className="flex items-center justify-between text-sm">
                     <span className="text-text-muted">{label}</span>

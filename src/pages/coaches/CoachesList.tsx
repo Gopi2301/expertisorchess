@@ -18,6 +18,7 @@ type CoachForm = {
   name: string; email: string; phone?: string;
   fide_rating?: number; rapid_rating?: number; blitz_rating?: number;
   experience_years?: number; bio?: string; hourly_rate?: number;
+  current_syllabus?: string;
 };
 
 type TabFilter = 'ALL' | 'PENDING' | 'ACTIVE' | 'REJECTED';
@@ -62,9 +63,10 @@ export const CoachesList: React.FC = () => {
     setEditTarget(coach);
     reset({
       name: coach.name, email: coach.email, phone: coach.phone ?? '',
-      fide_rating: coach.fide_rating, rapid_rating: coach.rapid_rating,
+      fide_rating: coach.fide_rating,      rapid_rating: coach.rapid_rating,
       blitz_rating: coach.blitz_rating, experience_years: coach.experience_years,
       bio: coach.bio ?? '', hourly_rate: coach.hourly_rate,
+      current_syllabus: coach.current_syllabus ?? '',
     });
     setModalOpen(true);
   };
@@ -226,6 +228,18 @@ export const CoachesList: React.FC = () => {
             ),
           },
           { key: 'experience_years', header: 'Exp.', render: row => row.experience_years ? `${row.experience_years}y` : '—' },
+          {
+            key: 'hourly_rate', header: 'Rate',
+            render: row => row.hourly_rate ? `₹${row.hourly_rate}/h` : '—'
+          },
+          {
+            key: 'current_syllabus', header: 'Syllabus',
+            render: row => (
+              <div className="max-w-[150px] truncate text-xs text-text-secondary" title={row.current_syllabus ?? ''}>
+                {row.current_syllabus || '—'}
+              </div>
+            )
+          },
           { key: 'status', header: 'Status', render: row => <StatusBadge status={row.status} /> },
           {
             key: 'actions', header: '',
@@ -300,6 +314,9 @@ export const CoachesList: React.FC = () => {
           <Input label="Rapid Rating" id="coach-rapid" type="number" {...register('rapid_rating', { valueAsNumber: true })} />
           <Input label="Blitz Rating" id="coach-blitz" type="number" {...register('blitz_rating', { valueAsNumber: true })} />
           <Input label="Experience (years)" id="coach-exp" type="number" {...register('experience_years', { valueAsNumber: true })} />
+          <div className="col-span-2">
+            <Input label="Current Handling Syllabus" id="coach-syllabus" placeholder="e.g. Beginner to Intermediate / Endgame Masterclass" {...register('current_syllabus')} />
+          </div>
           <div className="col-span-2">
             <Textarea label="Bio" id="coach-bio" rows={3} {...register('bio')} />
           </div>
