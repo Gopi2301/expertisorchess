@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Design Tokens ── */
+  --color-bg: #0F0F0F;
+  --color-bg-strong: #242424;
+  --color-bg-muted: #1A1A1A;
+  --color-bg-elevated: #2E2E2E;
+  --color-bg-brand: #FFF200;
+  --color-bg-brand-hover: #FBF250;
+  --color-bg-success: #032E15;
+  --color-bg-error: #460809;
+  --color-bg-white: #FFFFFF;
+
+  --color-text-primary: #F5F5F5;
+  --color-text-secondary: #A0A0A0;
+  --color-text-muted: #6B6B6B;
+  --color-text-brand: #FFF200;
+  --color-text-success: #4ADE80;
+  --color-text-error: #E7000B;
+  --color-text-warning: #D9CE00;
+  --color-text-on-brand: #0F0F0F;
+
+  --color-border: #2E2E2E;
+  --color-border-strong: #3D3D3D;
+
+  --color-error-strong: #E7000B;
+  --color-warning: #D9CE00;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+}
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body {
+    @apply bg-bg text-text-primary font-sans antialiased;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background-color: #FFF20033;
+    color: #FFF200;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #1A1A1A; }
+  ::-webkit-scrollbar-thumb { background: #3D3D3D; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #555; }
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(36, 36, 36, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .brand-glow {
+    box-shadow: 0 0 20px rgba(255, 242, 0, 0.15);
+  }
+
+  .card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease forwards;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.3s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+}
