@@ -130,9 +130,6 @@ export const CoachOnboarding: React.FC = () => {
     kc.onTokenExpired = () => kc.updateToken(70).catch(() => {});
   }, [isAuth]);
 
-  // Set token on the shared axios client for form submission
-  const getToken = () => isAuth ? kc.token ?? undefined : undefined;
-
   const goSignUp = () => {
     kc.register({ redirectUri: window.location.href });
   };

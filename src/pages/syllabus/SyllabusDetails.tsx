@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { 
-  BookOpen, ArrowLeft, Calendar, User, 
+  BookOpen, ArrowLeft, 
   ExternalLink, Clock, Plus, Pencil, Trash2
 } from 'lucide-react';
 import { syllabusApi } from '../../api/syllabus.api';
@@ -20,6 +20,8 @@ import { Modal } from '../../components/ui/Modal';
 import { Input, Select } from '../../components/ui/Input';
 import type { Syllabus, Class, Coach, Plan } from '../../types';
 
+import { useRoutePrefix } from '../../hooks/useRoutePrefix';
+
 type ClassForm = {
   title: string; coach_id: string; plan_id: string;
   scheduled_start: string; scheduled_end: string;
@@ -27,6 +29,7 @@ type ClassForm = {
 };
 
 export const SyllabusDetails: React.FC = () => {
+  const prefix = useRoutePrefix();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToast } = useContext(ToastContext);
@@ -74,7 +77,7 @@ export const SyllabusDetails: React.FC = () => {
       setClasses(clsRes.data);
     } catch (error) {
       addToast('Failed to load details', 'error');
-      navigate('/syllabus');
+      navigate(`${prefix}/syllabus`);
     } finally {
       setLoading(false);
     }
@@ -131,7 +134,7 @@ export const SyllabusDetails: React.FC = () => {
     <div className="space-y-6 animate-fade-in pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Link to="/syllabus" className="p-2 hover:bg-bg-strong rounded-lg transition-colors text-text-muted hover:text-text-primary">
+          <Link to={`${prefix}/syllabus`} className="p-2 hover:bg-bg-strong rounded-lg transition-colors text-text-muted hover:text-text-primary">
             <ArrowLeft size={20} />
           </Link>
           <div>
@@ -190,7 +193,7 @@ export const SyllabusDetails: React.FC = () => {
                   key: 'title', 
                   header: 'Class Name', 
                   render: row => (
-                    <Link to={`/classes/${row.id}`} className="font-medium text-bg-brand hover:underline">
+                    <Link to={`${prefix}/classes/${row.id}`} className="font-medium text-bg-brand hover:underline">
                       {row.title}
                     </Link>
                   ) 
@@ -239,7 +242,7 @@ export const SyllabusDetails: React.FC = () => {
                   header: '',
                   render: row => (
                     <div className="flex justify-end">
-                      <Link to={`/classes/${row.id}`}>
+                      <Link to={`${prefix}/classes/${row.id}`}>
                         <Button variant="ghost" size="sm">View</Button>
                       </Link>
                     </div>

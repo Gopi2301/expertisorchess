@@ -17,7 +17,9 @@ import { plansApi } from '../../api/plans.api';
 import { syllabusApi } from '../../api/syllabus.api';
 import { ToastContext } from '../../components/layout/AppLayout';
 import { formatDateTime } from '../../utils/format';
-import type { Class, Coach, Plan, Syllabus, PlanType } from '../../types';
+import type { Class, Coach, Plan, Syllabus } from '../../types';
+
+import { useRoutePrefix } from '../../hooks/useRoutePrefix';
 
 type ClassForm = {
   title: string; coach_id: string; plan_id: string; syllabus_id?: string;
@@ -28,6 +30,7 @@ type ClassForm = {
 
 
 export const ClassesList: React.FC = () => {
+  const prefix = useRoutePrefix();
   const { addToast } = useContext(ToastContext);
   const { hasRole } = useAuth();
   const isAdmin = hasRole('SUPER_ADMIN');
@@ -157,7 +160,7 @@ export const ClassesList: React.FC = () => {
         loading={loading} data={data} emptyMessage="No classes found."
         columns={[
           { key: 'title', header: 'Title', render: row => (
-            <Link to={`/classes/${row.id}`} className="font-medium text-text-primary hover:text-bg-brand">{row.title}</Link>
+            <Link to={`${prefix}/classes/${row.id}`} className="font-medium text-text-primary hover:text-bg-brand">{row.title}</Link>
           ) },
           { key: 'status', header: 'Status', render: row => <ClassStatusBadge status={row.status} /> },
           { key: 'scheduled_start', header: 'Scheduled', render: row => formatDateTime(row.scheduled_start) },

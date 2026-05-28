@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Users, Calendar, Clock, Video, ChevronRight, GraduationCap, Plus } from 'lucide-react';
+import { Users, Calendar, Video, ChevronRight, GraduationCap, Plus } from 'lucide-react';
 import { clientsApi } from '../../api/clients.api';
 import { formatDateTime } from '../../utils/format';
 import { Link } from 'react-router-dom';
@@ -41,7 +41,7 @@ export const ClientDashboard: React.FC = () => {
           <h1 className="text-2xl font-bold text-text-primary">Welcome, {data?.name}</h1>
           <p className="text-sm text-text-muted mt-1">Manage your family's chess journey.</p>
         </div>
-        <Link to="/students">
+        <Link to="/client/students">
           <Button icon={<Plus size={16} />}>Register Student</Button>
         </Link>
       </div>
@@ -104,7 +104,7 @@ export const ClientDashboard: React.FC = () => {
                     <p className="text-xs text-text-muted">{s.chess_level} • {s.status}</p>
                   </div>
                 </div>
-                <Link to={`/students`}>
+                <Link to={`/client/students`}>
                   <Button size="sm" variant="ghost" icon={<ChevronRight size={14} />} />
                 </Link>
               </div>

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, Users, Clock, Video, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calendar, Users, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { StatCard } from '../../components/ui/Card';
-import { ClassStatusBadge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { coachesApi, type CoachActivity } from '../../api/coaches.api';
 import { formatDateTime } from '../../utils/format';
@@ -96,7 +95,7 @@ export const CoachDashboard: React.FC = () => {
         <div className="bg-bg-strong border border-border rounded-xl">
           <div className="px-5 py-4 border-b border-border flex items-center justify-between">
             <h2 className="text-sm font-semibold text-text-primary">Upcoming Classes</h2>
-            <Link to="/classes" className="text-xs text-bg-brand hover:underline">View Schedule</Link>
+            <Link to="/coach/classes" className="text-xs text-bg-brand hover:underline">View Schedule</Link>
           </div>
           <div className="divide-y divide-border">
             {upcomingClasses.length === 0 ? (
@@ -109,7 +108,7 @@ export const CoachDashboard: React.FC = () => {
                     <p className="text-xs text-text-muted mt-0.5">{formatDateTime(cls.scheduled_start)}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Link to={`/classes/${cls.id}`}>
+                    <Link to={`/coach/classes/${cls.id}`}>
                       <Button size="sm" variant="secondary">View</Button>
                     </Link>
                   </div>
@@ -126,7 +125,7 @@ export const CoachDashboard: React.FC = () => {
               <h2 className="text-sm font-semibold text-text-primary">Action Items</h2>
             </div>
             <div className="p-5 space-y-4">
-              <Link to="/attendance" className="block p-4 bg-bg-brand/5 border border-bg-brand/20 rounded-xl hover:bg-bg-brand/10 transition-colors">
+              <Link to="/coach/attendance" className="block p-4 bg-bg-brand/5 border border-bg-brand/20 rounded-xl hover:bg-bg-brand/10 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-bg-brand/20 rounded-lg text-bg-brand">
                     <CheckCircle size={20} />

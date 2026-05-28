@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AppLayout } from './components/layout/AppLayout';
-import { Dashboard } from './pages/Dashboard';
 import { CoachesList } from './pages/coaches/CoachesList';
 import { ClientsList } from './pages/clients/ClientsList';
 import { StudentsList } from './pages/students/StudentsList';
@@ -80,11 +79,17 @@ const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <>{children}</>;
 };
 
+import { RoleRedirect } from './components/layout/RoleRedirect';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { CoachDashboard } from './pages/coaches/CoachDashboard';
+import { ClientDashboard } from './pages/clients/ClientDashboard';
+import { StudentDashboard } from './pages/students/StudentDashboard';
+
 const ProtectedRoute: React.FC<{ children: React.ReactNode; roles?: string[] }> = ({ children, roles }) => {
   const { hasRole, loading } = useAuth();
   if (loading) return null;
   if (roles && !roles.some(role => hasRole(role))) {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/" replace />;
   }
   return <>{children}</>;
 };
@@ -95,20 +100,44 @@ const ProtectedApp: React.FC = () => (
     <AuthGate>
       <Routes>
         <Route element={<AppLayout />}>
-          <Route path="/"           element={<Navigate to="/admin" replace />} />
-          <Route path="/admin"      element={<Dashboard />} />
+          {/* Root Redirector */}
+          <Route path="/" element={<RoleRedirect />} />
+
+          {/* SUPER_ADMIN Routes */}
+          <Route path="/admin" element={<ProtectedRoute roles={['SUPER_ADMIN']}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/system" element={<ProtectedRoute roles={['SUPER_ADMIN']}><AdminPanel /></ProtectedRoute>} />
-          <Route path="/coaches"    element={<ProtectedRoute roles={['SUPER_ADMIN']}><CoachesList /></ProtectedRoute>} />
-          <Route path="/clients"    element={<ProtectedRoute roles={['SUPER_ADMIN']}><ClientsList /></ProtectedRoute>} />
-          <Route path="/students"   element={<ProtectedRoute roles={['COACH', 'SUPER_ADMIN']}><StudentsList /></ProtectedRoute>} />
-          <Route path="/classes"    element={<ProtectedRoute roles={['COACH', 'SUPER_ADMIN']}><ClassesList /></ProtectedRoute>} />
-          <Route path="/classes/:id" element={<ProtectedRoute roles={['COACH', 'SUPER_ADMIN']}><ClassDetails /></ProtectedRoute>} />
-          <Route path="/plans"      element={<ProtectedRoute roles={['SUPER_ADMIN']}><PlansList /></ProtectedRoute>} />
-          <Route path="/batches"    element={<ProtectedRoute roles={['COACH', 'SUPER_ADMIN']}><BatchesList /></ProtectedRoute>} />
-          <Route path="/syllabus"   element={<ProtectedRoute roles={['COACH', 'SUPER_ADMIN']}><SyllabusList /></ProtectedRoute>} />
-          <Route path="/syllabus/:id" element={<ProtectedRoute roles={['COACH', 'SUPER_ADMIN']}><SyllabusDetails /></ProtectedRoute>} />
-          <Route path="/attendance" element={<ProtectedRoute roles={['COACH', 'SUPER_ADMIN']}><AttendancePage /></ProtectedRoute>} />
-          <Route path="/profile"    element={<CoachProfile />} />
+          <Route path="/admin/coaches" element={<ProtectedRoute roles={['SUPER_ADMIN']}><CoachesList /></ProtectedRoute>} />
+          <Route path="/admin/clients" element={<ProtectedRoute roles={['SUPER_ADMIN']}><ClientsList /></ProtectedRoute>} />
+          <Route path="/admin/students" element={<ProtectedRoute roles={['SUPER_ADMIN']}><StudentsList /></ProtectedRoute>} />
+          <Route path="/admin/classes" element={<ProtectedRoute roles={['SUPER_ADMIN']}><ClassesList /></ProtectedRoute>} />
+          <Route path="/admin/classes/:id" element={<ProtectedRoute roles={['SUPER_ADMIN']}><ClassDetails /></ProtectedRoute>} />
+          <Route path="/admin/plans" element={<ProtectedRoute roles={['SUPER_ADMIN']}><PlansList /></ProtectedRoute>} />
+          <Route path="/admin/batches" element={<ProtectedRoute roles={['SUPER_ADMIN']}><BatchesList /></ProtectedRoute>} />
+          <Route path="/admin/syllabus" element={<ProtectedRoute roles={['SUPER_ADMIN']}><SyllabusList /></ProtectedRoute>} />
+          <Route path="/admin/syllabus/:id" element={<ProtectedRoute roles={['SUPER_ADMIN']}><SyllabusDetails /></ProtectedRoute>} />
+          <Route path="/admin/attendance" element={<ProtectedRoute roles={['SUPER_ADMIN']}><AttendancePage /></ProtectedRoute>} />
+          <Route path="/admin/profile" element={<ProtectedRoute roles={['SUPER_ADMIN']}><CoachProfile /></ProtectedRoute>} />
+
+          {/* COACH Routes */}
+          <Route path="/coach" element={<ProtectedRoute roles={['COACH']}><CoachDashboard /></ProtectedRoute>} />
+          <Route path="/coach/students" element={<ProtectedRoute roles={['COACH']}><StudentsList /></ProtectedRoute>} />
+          <Route path="/coach/classes" element={<ProtectedRoute roles={['COACH']}><ClassesList /></ProtectedRoute>} />
+          <Route path="/coach/classes/:id" element={<ProtectedRoute roles={['COACH']}><ClassDetails /></ProtectedRoute>} />
+          <Route path="/coach/batches" element={<ProtectedRoute roles={['COACH']}><BatchesList /></ProtectedRoute>} />
+          <Route path="/coach/syllabus" element={<ProtectedRoute roles={['COACH']}><SyllabusList /></ProtectedRoute>} />
+          <Route path="/coach/syllabus/:id" element={<ProtectedRoute roles={['COACH']}><SyllabusDetails /></ProtectedRoute>} />
+          <Route path="/coach/attendance" element={<ProtectedRoute roles={['COACH']}><AttendancePage /></ProtectedRoute>} />
+          <Route path="/coach/profile" element={<ProtectedRoute roles={['COACH']}><CoachProfile /></ProtectedRoute>} />
+
+          {/* CLIENT Routes */}
+          <Route path="/client" element={<ProtectedRoute roles={['CLIENT']}><ClientDashboard /></ProtectedRoute>} />
+          <Route path="/client/students" element={<ProtectedRoute roles={['CLIENT']}><StudentsList /></ProtectedRoute>} />
+          <Route path="/client/profile" element={<ProtectedRoute roles={['CLIENT']}><CoachProfile /></ProtectedRoute>} />
+
+          {/* STUDENT Routes */}
+          <Route path="/student" element={<ProtectedRoute roles={['STUDENT']}><StudentDashboard /></ProtectedRoute>} />
+          <Route path="/student/classes" element={<ProtectedRoute roles={['STUDENT']}><ClassesList /></ProtectedRoute>} />
+          <Route path="/student/profile" element={<ProtectedRoute roles={['STUDENT']}><CoachProfile /></ProtectedRoute>} />
         </Route>
       </Routes>
     </AuthGate>

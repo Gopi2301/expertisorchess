@@ -12,7 +12,7 @@ import { coachesApi } from '../../api/coaches.api';
 import { CoachActivityDrawer } from './CoachActivityDrawer';
 import { ToastContext } from '../../components/layout/AppLayout';
 import { useAuth } from '../../contexts/AuthContext';
-import type { Coach, Status } from '../../types';
+import type { Coach } from '../../types';
 
 type CoachForm = {
   name: string; email: string; phone?: string;

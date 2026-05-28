@@ -4,7 +4,7 @@ import {
   Calendar, Clock, User, BookOpen, Users, 
   ExternalLink, ArrowLeft, Pencil, Trash2, 
   CheckCircle, XCircle, AlertCircle, Play,
-  ClipboardCheck, MessageSquare, ShieldCheck, Video
+  ClipboardCheck, ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { classesApi } from '../../api/classes.api';
@@ -14,13 +14,15 @@ import { ClassStatusBadge, AttendanceBadge } from '../../components/ui/Badge';
 import { formatDateTime, getInitials } from '../../utils/format';
 import { Modal } from '../../components/ui/Modal';
 import { Input, Select } from '../../components/ui/Input';
-import type { Class, StudentClass, Attendance, AttendanceStatus, Coach, Plan, Syllabus } from '../../types';
+import type { Class, Attendance, AttendanceStatus, Coach, Plan, Syllabus } from '../../types';
 import { ToastContext } from '../../components/layout/AppLayout';
 import { useForm } from 'react-hook-form';
 import { coachesApi } from '../../api/coaches.api';
 import { batchesApi } from '../../api/batches';
 import { plansApi } from '../../api/plans.api';
 import { syllabusApi } from '../../api/syllabus.api';
+
+import { useRoutePrefix } from '../../hooks/useRoutePrefix';
 
 type ClassForm = {
   title: string; coach_id: string; plan_id: string; syllabus_id?: string;
@@ -29,6 +31,7 @@ type ClassForm = {
 };
 
 export const ClassDetails: React.FC = () => {
+  const prefix = useRoutePrefix();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToast } = useContext(ToastContext);
@@ -115,7 +118,7 @@ export const ClassDetails: React.FC = () => {
       setAttRemarks(remMap);
     } catch (error) {
       addToast('Failed to load class details', 'error');
-      navigate('/classes');
+      navigate(`${prefix}/classes`);
     } finally {
       setLoading(false);
     }
@@ -197,7 +200,7 @@ export const ClassDetails: React.FC = () => {
     try {
       await classesApi.delete(id);
       addToast('Class deleted successfully', 'success');
-      navigate('/classes');
+      navigate(`${prefix}/classes`);
     } catch (error: any) {
       addToast(error?.response?.data?.message ?? 'Failed to delete class', 'error');
     }
@@ -278,7 +281,7 @@ export const ClassDetails: React.FC = () => {
     <div className="space-y-6 animate-fade-in pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Link to="/classes" className="p-2 hover:bg-bg-strong rounded-lg transition-colors text-text-muted hover:text-text-primary">
+          <Link to={`${prefix}/classes`} className="p-2 hover:bg-bg-strong rounded-lg transition-colors text-text-muted hover:text-text-primary">
             <ArrowLeft size={20} />
           </Link>
           <div>
@@ -403,7 +406,7 @@ export const ClassDetails: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-xs text-text-muted uppercase tracking-wider font-semibold">Batch</p>
-                      <Link to={`/batches`} className="text-sm text-bg-brand hover:underline font-medium">
+                      <Link to={`${prefix}/batches`} className="text-sm text-bg-brand hover:underline font-medium">
                         {classData.batch.title}
                       </Link>
                     </div>
@@ -606,7 +609,7 @@ export const ClassDetails: React.FC = () => {
       </div>
 
       <Modal
-        isOpen={showCompleteModal}
+        open={showCompleteModal}
         onClose={() => setShowCompleteModal(false)}
         title="Complete Class Session"
       >
@@ -650,7 +653,6 @@ export const ClassDetails: React.FC = () => {
             placeholder="https://zoom.us/rec/..."
             value={completionData.recording_url}
             onChange={(e) => setCompletionData(prev => ({ ...prev, recording_url: e.target.value }))}
-            icon={<Video size={16} />}
           />
 
           <div className="pt-4 flex gap-3">
@@ -664,7 +666,7 @@ export const ClassDetails: React.FC = () => {
 
       {/* Edit Class Modal */}
       <Modal 
-        isOpen={showEditModal} 
+        open={showEditModal} 
         onClose={() => setShowEditModal(false)}
         title="Edit Class" 
         size="lg"

@@ -11,6 +11,7 @@ import { useApi } from '../../hooks/useApi';
 import { studentsApi } from '../../api/students.api';
 import { clientsApi } from '../../api/clients.api';
 import { ToastContext } from '../../components/layout/AppLayout';
+import { useAuth } from '../../contexts/AuthContext';
 import type { Student, Client } from '../../types';
 
 type StudentForm = {
@@ -21,6 +22,9 @@ type StudentForm = {
 
 export const StudentsList: React.FC = () => {
   const { addToast } = useContext(ToastContext);
+  const { hasRole, user } = useAuth();
+  const isAdmin = hasRole('SUPER_ADMIN');
+
   const { data, meta, loading, refetch, params, updateParams } = useApi<Student>({
     fetcher: studentsApi.list,
   });
@@ -34,8 +38,10 @@ export const StudentsList: React.FC = () => {
 
   // Load clients for dropdown
   useEffect(() => {
-    clientsApi.list({ limit: 100 }).then(r => setClients(r.data)).catch(() => {});
-  }, []);
+    if (isAdmin) {
+      clientsApi.list({ limit: 100 }).then(r => setClients(r.data)).catch(() => {});
+    }
+  }, [isAdmin]);
 
   const openCreate = () => { setEditTarget(null); reset({ chess_level: 'BEGINNER', status: 'ACTIVE', relation_to_client: 'PARENT' }); setModalOpen(true); };
   const openEdit = (s: Student) => {
@@ -80,6 +86,58 @@ export const StudentsList: React.FC = () => {
 
   const clientOptions = clients.map(c => ({ value: c.id, label: `${c.name} (${c.email})` }));
 
+  const columns = [
+    {
+      key: 'name', header: 'Student',
+      render: (row: Student) => (
+        <div>
+          <p className="font-medium text-text-primary text-sm">{row.name}</p>
+          <p className="text-xs text-text-muted">{row.age ? `Age ${row.age}` : ''} {row.email ?? ''}</p>
+        </div>
+      ),
+    },
+    { key: 'chess_level', header: 'Level', render: (row: Student) => <ChessLevelBadge level={row.chess_level} /> },
+    { key: 'current_rating', header: 'Rating', render: (row: Student) => row.current_rating ?? '—' },
+    { key: 'status', header: 'Status', render: (row: Student) => <StatusBadge status={row.status} /> },
+  ];
+
+  if (!isAdmin) {
+    columns.push({
+      key: 'classes',
+      header: 'Class Details',
+      render: (row: Student) => {
+        const coachClasses = row.classes
+          ?.filter((sc: any) => sc.class?.coach_id && sc.class?.coach?.keycloak_user_id === user?.id)
+          ?.map((sc: any) => sc.class);
+
+        if (!coachClasses || coachClasses.length === 0) {
+          return <span className="text-text-muted text-xs">—</span>;
+        }
+
+        return (
+          <div className="flex flex-col gap-1 max-w-[200px]">
+            {coachClasses.map((c: any) => (
+              <div key={c.id} className="text-xs px-2 py-1 bg-bg-brand/10 border border-bg-brand/20 text-bg-brand rounded font-medium truncate" title={c.title}>
+                {c.title}
+              </div>
+            ))}
+          </div>
+        );
+      }
+    } as any);
+  } else {
+    columns.push({
+      key: 'actions', header: '',
+      render: (row: Student) => (
+        <div className="flex items-center justify-end gap-1">
+          <Button variant="ghost" size="sm" onClick={() => openEdit(row)} icon={<Pencil size={14} />} />
+          <Button variant="ghost" size="sm" onClick={() => setDeleteId(row.id)} icon={<Trash2 size={14} />}
+            className="hover:text-error-strong hover:bg-bg-error" />
+        </div>
+      ),
+    } as any);
+  }
+
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
@@ -89,7 +147,7 @@ export const StudentsList: React.FC = () => {
           </h1>
           <p className="text-sm text-text-muted mt-0.5">{meta?.total ?? 0} total students</p>
         </div>
-        <Button onClick={openCreate} icon={<Plus size={16} />}>Add Student</Button>
+        {isAdmin && <Button onClick={openCreate} icon={<Plus size={16} />}>Add Student</Button>}
       </div>
 
       <div className="relative max-w-xs">
@@ -104,30 +162,7 @@ export const StudentsList: React.FC = () => {
       <Table<Student>
         loading={loading} data={data}
         emptyMessage="No students found."
-        columns={[
-          {
-            key: 'name', header: 'Student',
-            render: row => (
-              <div>
-                <p className="font-medium text-text-primary text-sm">{row.name}</p>
-                <p className="text-xs text-text-muted">{row.age ? `Age ${row.age}` : ''} {row.email ?? ''}</p>
-              </div>
-            ),
-          },
-          { key: 'chess_level', header: 'Level', render: row => <ChessLevelBadge level={row.chess_level} /> },
-          { key: 'current_rating', header: 'Rating', render: row => row.current_rating ?? '—' },
-          { key: 'status', header: 'Status', render: row => <StatusBadge status={row.status} /> },
-          {
-            key: 'actions', header: '',
-            render: row => (
-              <div className="flex items-center justify-end gap-1">
-                <Button variant="ghost" size="sm" onClick={() => openEdit(row)} icon={<Pencil size={14} />} />
-                <Button variant="ghost" size="sm" onClick={() => setDeleteId(row.id)} icon={<Trash2 size={14} />}
-                  className="hover:text-error-strong hover:bg-bg-error" />
-              </div>
-            ),
-          },
-        ]}
+        columns={columns as any}
       />
 
       {meta && (

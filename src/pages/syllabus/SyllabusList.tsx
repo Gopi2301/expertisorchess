@@ -13,9 +13,12 @@ import { ToastContext } from '../../components/layout/AppLayout';
 import { formatDate } from '../../utils/format';
 import type { Syllabus } from '../../types';
 
+import { useRoutePrefix } from '../../hooks/useRoutePrefix';
+
 type SyllabusForm = { title: string; description?: string };
 
 export const SyllabusList: React.FC = () => {
+  const prefix = useRoutePrefix();
   const { addToast } = useContext(ToastContext);
   const { data, meta, loading, refetch, params, updateParams } = useApi<Syllabus>({ fetcher: syllabusApi.list });
   const [modalOpen, setModalOpen] = useState(false);
@@ -58,7 +61,7 @@ export const SyllabusList: React.FC = () => {
       <Table<Syllabus>
         loading={loading} data={data} emptyMessage="No syllabus found."
         columns={[
-          { key: 'title', header: 'Title', render: row => <Link to={`/syllabus/${row.id}`} className="font-medium text-bg-brand hover:underline">{row.title}</Link> },
+          { key: 'title', header: 'Title', render: row => <Link to={`${prefix}/syllabus/${row.id}`} className="font-medium text-bg-brand hover:underline">{row.title}</Link> },
           { key: 'description', header: 'Description', render: row => <span className="text-text-muted text-sm truncate max-w-xs block">{row.description ?? '—'}</span> },
           { key: 'created_at', header: 'Created', render: row => formatDate(row.created_at) },
           { key: 'actions', header: '', render: row => (

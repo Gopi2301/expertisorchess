@@ -38,7 +38,7 @@ export const AdminDashboard: React.FC = () => {
             System-wide overview and administrative controls.
           </p>
         </div>
-        <Link to="/classes">
+        <Link to="/admin/classes">
           <Button icon={<Plus size={16} />}>Create Class</Button>
         </Link>
       </div>
@@ -103,7 +103,7 @@ export const AdminDashboard: React.FC = () => {
             <Calendar size={16} className="text-bg-brand" />
             Recent Classes
           </h2>
-          <Link to="/classes" className="text-xs text-bg-brand hover:text-bg-brand-hover flex items-center gap-1 font-semibold">
+          <Link to="/admin/classes" className="text-xs text-bg-brand hover:text-bg-brand-hover flex items-center gap-1 font-semibold">
             View all <ChevronRight size={12} />
           </Link>
         </div>
@@ -124,7 +124,7 @@ export const AdminDashboard: React.FC = () => {
             recentClasses.map(cls => (
               <Link
                 key={cls.id}
-                to={`/classes/${cls.id}`}
+                to={`/admin/classes/${cls.id}`}
                 className="px-5 py-4 flex items-center gap-4 hover:bg-bg-muted/30 transition-colors group"
               >
                 <div className="flex-1 min-w-0">
@@ -143,10 +143,10 @@ export const AdminDashboard: React.FC = () => {
       {/* Quick actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { to: '/coaches', label: 'Add Coach', icon: <Crown size={16} /> },
-          { to: '/clients', label: 'Add Client', icon: <Users size={16} /> },
-          { to: '/students', label: 'Add Student', icon: <GraduationCap size={16} /> },
-          { to: '/attendance', label: 'Mark Attendance', icon: <Clock size={16} /> },
+          { to: '/admin/coaches', label: 'Add Coach', icon: <Crown size={16} /> },
+          { to: '/admin/clients', label: 'Add Client', icon: <Users size={16} /> },
+          { to: '/admin/students', label: 'Add Student', icon: <GraduationCap size={16} /> },
+          { to: '/admin/attendance', label: 'Mark Attendance', icon: <Clock size={16} /> },
         ].map(a => (
           <Link key={a.to} to={a.to}>
             <button className="w-full flex flex-col items-center justify-center gap-2 px-4 py-6 bg-bg-strong border border-border rounded-xl text-sm text-text-secondary hover:text-text-primary hover:border-bg-brand/50 hover:shadow-lg hover:shadow-bg-brand/5 transition-all group">

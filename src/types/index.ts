@@ -63,6 +63,8 @@ export interface Student {
   created_by?: string;
   relation_to_client: StudentRelation;
   client?: Client;
+  classes?: StudentClass[];
+  batches?: BatchStudent[];
 }
 
 export interface Plan {

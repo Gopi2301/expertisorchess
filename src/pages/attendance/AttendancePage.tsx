@@ -1,8 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { ClipboardList, CheckCircle, Search, Calendar, Users, User, LayoutGrid, CheckSquare, XSquare, Clock, Info } from 'lucide-react';
-import { Select } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
-import { AttendanceBadge, ChessLevelBadge } from '../../components/ui/Badge';
+import { AttendanceBadge } from '../../components/ui/Badge';
 import { ToastContext } from '../../components/layout/AppLayout';
 import { classesApi } from '../../api/classes.api';
 import { attendanceApi, type AttendanceRecord } from '../../api/attendance.api';
