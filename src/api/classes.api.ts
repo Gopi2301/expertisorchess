@@ -4,6 +4,9 @@ import type { Class, StudentClass, PaginatedResponse, ApiResponse, PaginationPar
 export const classesApi = {
   list: (params?: PaginationParams) =>
     apiClient.get<PaginatedResponse<Class>>('/classes', { params }).then(r => r.data),
+  
+  listMy: (params?: PaginationParams) =>
+    apiClient.get<PaginatedResponse<Class>>('/classes/my', { params }).then(r => r.data),
 
   get: (id: string) =>
     apiClient.get<ApiResponse<Class>>(`/classes/${id}`).then(r => r.data),
@@ -14,11 +17,20 @@ export const classesApi = {
   update: (id: string, data: Partial<Class>) =>
     apiClient.patch<ApiResponse<Class>>(`/classes/${id}`, data).then(r => r.data),
 
+  coachUpdate: (id: string, data: { title?: string; meeting_link?: string; scheduled_start?: string; scheduled_end?: string }) =>
+    apiClient.patch<ApiResponse<Class>>(`/classes/${id}/coach-update`, data).then(r => r.data),
+
   delete: (id: string) =>
     apiClient.delete(`/classes/${id}`).then(r => r.data),
 
   publish: (id: string) =>
     apiClient.post(`/classes/${id}/publish`).then(r => r.data),
+
+  complete: (id: string, data: { recording_url?: string; actual_start?: string; actual_end?: string; coach_status?: string }) =>
+    apiClient.post(`/classes/${id}/complete`, data).then(r => r.data),
+
+  verify: (id: string) =>
+    apiClient.patch(`/classes/${id}/verify`).then(r => r.data),
 
   // Enrollment
   getEnrollments: (classId: string) =>

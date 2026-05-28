@@ -4,9 +4,10 @@ import Keycloak from 'keycloak-js';
 import {
   Trophy, Star, Clock, CheckCircle2, ChevronRight,
   User, Mail, Phone, Award, BookOpen, DollarSign,
-  ArrowLeft, Loader2, Shield,
+  ArrowLeft, Loader2, Shield, LogOut,
 } from 'lucide-react';
 import { coachesApi } from '../../api/coaches.api';
+import apiClient from '../../api/client';
 
 // ── Keycloak instance (check-sso — does NOT force redirect) ─────────────────
 const kc = new Keycloak({
@@ -78,9 +79,46 @@ export const CoachOnboarding: React.FC = () => {
         if (authenticated && kc.tokenParsed) {
           const tp = kc.tokenParsed as any;
           setKcUser({ name: tp.name ?? tp.preferred_username ?? '', email: tp.email ?? '' });
-          // If user just came back from Keycloak registration / login, jump to form
-          setStep('form');
-          reset({ name: tp.name ?? '', email: tp.email ?? '' });
+
+          if (kc.token) {
+            // Set the bearer token on apiClient so coachesApi.me() is authenticated
+            apiClient.defaults.headers.common['Authorization'] = `Bearer ${kc.token}`;
+            
+            coachesApi.me()
+              .then((res) => {
+                const coach = res.data;
+                if (coach) {
+                  if (coach.status === 'ACTIVE') {
+                    // Coach is already approved — redirect to main dashboard
+                    window.location.href = '/admin';
+                  } else if (coach.status === 'PENDING') {
+                    // Application is pending review — show success screen
+                    setStep('success');
+                  } else if (coach.status === 'REJECTED') {
+                    // Application rejected
+                    setSubmitError('Your coach application was previously rejected. Please contact support.');
+                    setStep('hero');
+                  } else {
+                    // Suspended / Inactive
+                    setSubmitError(`Your account is currently ${coach.status.toLowerCase()}. Please contact support.`);
+                    setStep('hero');
+                  }
+                }
+              })
+              .catch((err) => {
+                // If 404, the coach has not completed their onboarding profile yet
+                if (err.response?.status === 404) {
+                  setStep('form');
+                  reset({ name: tp.name ?? '', email: tp.email ?? '' });
+                } else {
+                  setSubmitError('Failed to load profile. Please try again.');
+                  setStep('form');
+                }
+              });
+          } else {
+            setStep('form');
+            reset({ name: tp.name ?? '', email: tp.email ?? '' });
+          }
         }
       })
       .catch(() => setKcReady(true)); // graceful fail
@@ -100,6 +138,9 @@ export const CoachOnboarding: React.FC = () => {
   };
   const goLogin = () => {
     kc.login({ redirectUri: window.location.href });
+  };
+  const goLogout = () => {
+    kc.logout({ redirectUri: window.location.href });
   };
 
   const onSubmit = async (data: FormData) => {
@@ -254,11 +295,16 @@ export const CoachOnboarding: React.FC = () => {
                 <span className="text-2xl">♟</span> Expertisor Chess
               </div>
               {kcUser && (
-                <div className="flex items-center gap-2 text-sm text-white/60 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
-                  <div className="w-5 h-5 rounded-full bg-amber-400 flex items-center justify-center text-black text-xs font-bold">
-                    {kcUser.name.charAt(0).toUpperCase()}
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-sm text-white/60 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+                    <div className="w-5 h-5 rounded-full bg-amber-400 flex items-center justify-center text-black text-xs font-bold">
+                      {kcUser.name.charAt(0).toUpperCase()}
+                    </div>
+                    {kcUser.name || kcUser.email}
                   </div>
-                  {kcUser.name || kcUser.email}
+                  <button onClick={goLogout} type="button" className="text-sm text-red-400 hover:text-red-300 transition-colors flex items-center gap-1">
+                    <LogOut size={16} /> Logout
+                  </button>
                 </div>
               )}
             </div>

@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen,
   Calendar, ClipboardList, FileText, ShieldCheck,
-  ChevronLeft, ChevronRight, LogOut, Crown, Layers,
+  ChevronLeft, ChevronRight, LogOut, Crown, Layers, User,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -12,24 +12,26 @@ interface NavItem {
   icon: React.ReactNode;
   label: string;
   end?: boolean;
+  roles?: string[];
 }
 
 const navItems: NavItem[] = [
   { to: '/admin', icon: <LayoutDashboard size={18} />, label: 'Dashboard', end: true },
-  { to: '/coaches', icon: <Crown size={18} />, label: 'Coaches' },
-  { to: '/clients', icon: <Users size={18} />, label: 'Clients' },
-  { to: '/students', icon: <GraduationCap size={18} />, label: 'Students' },
-  { to: '/classes', icon: <Calendar size={18} />, label: 'Classes' },
-  { to: '/batches', icon: <Layers size={18} />, label: 'Groups' },
-  { to: '/plans', icon: <FileText size={18} />, label: 'Plans' },
-  { to: '/syllabus', icon: <BookOpen size={18} />, label: 'Syllabus' },
-  { to: '/attendance', icon: <ClipboardList size={18} />, label: 'Attendance' },
-  { to: '/admin/system', icon: <ShieldCheck size={18} />, label: 'System' },
+  { to: '/coaches', icon: <Crown size={18} />, label: 'Coaches', roles: ['SUPER_ADMIN'] },
+  { to: '/clients', icon: <Users size={18} />, label: 'Clients', roles: ['SUPER_ADMIN'] },
+  { to: '/students', icon: <GraduationCap size={18} />, label: 'Students', roles: ['COACH', 'SUPER_ADMIN'] },
+  { to: '/classes', icon: <Calendar size={18} />, label: 'Classes', roles: ['COACH', 'SUPER_ADMIN'] },
+  { to: '/batches', icon: <Layers size={18} />, label: 'Groups', roles: ['COACH', 'SUPER_ADMIN'] },
+  { to: '/plans', icon: <FileText size={18} />, label: 'Plans', roles: ['SUPER_ADMIN'] },
+  { to: '/syllabus', icon: <BookOpen size={18} />, label: 'Syllabus', roles: ['COACH', 'SUPER_ADMIN'] },
+  { to: '/attendance', icon: <ClipboardList size={18} />, label: 'Attendance', roles: ['COACH', 'SUPER_ADMIN'] },
+  { to: '/profile', icon: <User size={18} />, label: 'Profile' },
+  { to: '/admin/system', icon: <ShieldCheck size={18} />, label: 'System', roles: ['SUPER_ADMIN'] },
 ];
 
 export const Sidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, hasRole } = useAuth();
 
   return (
     <aside
@@ -54,7 +56,9 @@ export const Sidebar: React.FC = () => {
 
       {/* Nav */}
       <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
-        {navItems.map(item => (
+        {navItems
+          .filter(item => !item.roles || item.roles.some(role => hasRole(role)))
+          .map(item => (
           <NavLink
             key={item.to}
             to={item.to}

@@ -30,7 +30,7 @@ const AuthContext = createContext<AuthContextValue>({
 });
 
 // ─── Required realm-level role for this app ───────────────────────────────────
-const REQUIRED_ROLES = ['SUPER_ADMIN', 'admin', 'COACH'];
+const REQUIRED_ROLES = ['SUPER_ADMIN', 'admin', 'COACH', 'CLIENT', 'STUDENT', 'default-roles-chess'];
 
 // ─── Provider ────────────────────────────────────────────────────────────────
 

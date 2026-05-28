@@ -15,6 +15,12 @@ export const coachesApi = {
   list: (params?: PaginationParams) =>
     apiClient.get<PaginatedResponse<Coach>>('/coaches', { params }).then(r => r.data),
 
+  me: () =>
+    apiClient.get<ApiResponse<Coach>>('/coaches/me').then(r => r.data),
+
+  meDashboard: () =>
+    apiClient.get<ApiResponse<CoachActivity>>('/coaches/me/dashboard').then(r => r.data),
+
   get: (id: string) =>
     apiClient.get<ApiResponse<Coach>>(`/coaches/${id}`).then(r => r.data),
 

@@ -15,6 +15,7 @@ import { SyllabusDetails } from './pages/syllabus/SyllabusDetails';
 import { AttendancePage } from './pages/attendance/AttendancePage';
 import { AdminPanel } from './pages/admin/AdminPanel';
 import { CoachOnboarding } from './pages/public/CoachOnboarding';
+import { CoachProfile } from './pages/coaches/CoachProfile';
 import { ShieldX, RefreshCw, LogOut } from 'lucide-react';
 
 // ─── Auth Gate ────────────────────────────────────────────────────────────────
@@ -79,6 +80,15 @@ const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <>{children}</>;
 };
 
+const ProtectedRoute: React.FC<{ children: React.ReactNode; roles?: string[] }> = ({ children, roles }) => {
+  const { hasRole, loading } = useAuth();
+  if (loading) return null;
+  if (roles && !roles.some(role => hasRole(role))) {
+    return <Navigate to="/admin" replace />;
+  }
+  return <>{children}</>;
+};
+
 // ─── Protected App (requires auth) ────────────────────────────────────────────
 const ProtectedApp: React.FC = () => (
   <AuthProvider>
@@ -87,17 +97,18 @@ const ProtectedApp: React.FC = () => (
         <Route element={<AppLayout />}>
           <Route path="/"           element={<Navigate to="/admin" replace />} />
           <Route path="/admin"      element={<Dashboard />} />
-          <Route path="/admin/system" element={<AdminPanel />} />
-          <Route path="/coaches"    element={<CoachesList />} />
-          <Route path="/clients"    element={<ClientsList />} />
-          <Route path="/students"   element={<StudentsList />} />
-          <Route path="/classes"    element={<ClassesList />} />
-          <Route path="/classes/:id" element={<ClassDetails />} />
-          <Route path="/plans"      element={<PlansList />} />
-          <Route path="/batches"    element={<BatchesList />} />
-          <Route path="/syllabus"   element={<SyllabusList />} />
-          <Route path="/syllabus/:id" element={<SyllabusDetails />} />
-          <Route path="/attendance" element={<AttendancePage />} />
+          <Route path="/admin/system" element={<ProtectedRoute roles={['SUPER_ADMIN']}><AdminPanel /></ProtectedRoute>} />
+          <Route path="/coaches"    element={<ProtectedRoute roles={['SUPER_ADMIN']}><CoachesList /></ProtectedRoute>} />
+          <Route path="/clients"    element={<ProtectedRoute roles={['SUPER_ADMIN']}><ClientsList /></ProtectedRoute>} />
+          <Route path="/students"   element={<ProtectedRoute roles={['COACH', 'SUPER_ADMIN']}><StudentsList /></ProtectedRoute>} />
+          <Route path="/classes"    element={<ProtectedRoute roles={['COACH', 'SUPER_ADMIN']}><ClassesList /></ProtectedRoute>} />
+          <Route path="/classes/:id" element={<ProtectedRoute roles={['COACH', 'SUPER_ADMIN']}><ClassDetails /></ProtectedRoute>} />
+          <Route path="/plans"      element={<ProtectedRoute roles={['SUPER_ADMIN']}><PlansList /></ProtectedRoute>} />
+          <Route path="/batches"    element={<ProtectedRoute roles={['COACH', 'SUPER_ADMIN']}><BatchesList /></ProtectedRoute>} />
+          <Route path="/syllabus"   element={<ProtectedRoute roles={['COACH', 'SUPER_ADMIN']}><SyllabusList /></ProtectedRoute>} />
+          <Route path="/syllabus/:id" element={<ProtectedRoute roles={['COACH', 'SUPER_ADMIN']}><SyllabusDetails /></ProtectedRoute>} />
+          <Route path="/attendance" element={<ProtectedRoute roles={['COACH', 'SUPER_ADMIN']}><AttendancePage /></ProtectedRoute>} />
+          <Route path="/profile"    element={<CoachProfile />} />
         </Route>
       </Routes>
     </AuthGate>

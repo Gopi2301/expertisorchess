@@ -103,6 +103,10 @@ export interface Class {
   status: ClassStatus;
   is_recorded: boolean;
   recording_url?: string;
+  actual_start?: string;
+  actual_end?: string;
+  coach_status?: AttendanceStatus;
+  admin_verified: boolean;
   created_at: string;
   updated_at: string;
   coach?: Coach;

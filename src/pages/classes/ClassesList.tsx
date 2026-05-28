@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Plus, Pencil, Trash2, Calendar, Search, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { Table } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
@@ -28,8 +29,11 @@ type ClassForm = {
 
 export const ClassesList: React.FC = () => {
   const { addToast } = useContext(ToastContext);
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole('SUPER_ADMIN');
+
   const { data, meta, loading, refetch, params, updateParams } = useApi<Class>({
-    fetcher: classesApi.list,
+    fetcher: isAdmin ? classesApi.list : classesApi.listMy,
   });
 
   const [coaches, setCoaches] = useState<Coach[]>([]);
@@ -77,7 +81,16 @@ export const ClassesList: React.FC = () => {
         batch_id: form.batch_id || undefined,
       };
       if (editTarget) {
-        await classesApi.update(editTarget.id, payload);
+        if (isAdmin) {
+          await classesApi.update(editTarget.id, payload);
+        } else {
+          await classesApi.coachUpdate(editTarget.id, {
+            title: payload.title,
+            meeting_link: payload.meeting_link,
+            scheduled_start: payload.scheduled_start,
+            scheduled_end: payload.scheduled_end,
+          });
+        }
         addToast('Class updated', 'success');
       } else {
         await classesApi.create(payload);
@@ -127,7 +140,7 @@ export const ClassesList: React.FC = () => {
           <p className="text-sm text-text-muted mt-0.5">{meta?.total ?? 0} total classes</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={openCreate} icon={<Plus size={16} />}>Add Class</Button>
+          {isAdmin && <Button onClick={openCreate} icon={<Plus size={16} />}>Add Class</Button>}
         </div>
       </div>
 
@@ -165,8 +178,10 @@ export const ClassesList: React.FC = () => {
                   className="text-text-success hover:bg-bg-success/10" />
               )}
               <Button variant="ghost" size="sm" onClick={() => openEdit(row)} icon={<Pencil size={14} />} />
-              <Button variant="ghost" size="sm" onClick={() => setDeleteId(row.id)} icon={<Trash2 size={14} />}
-                className="hover:text-error-strong hover:bg-bg-error" />
+              {isAdmin && (
+                <Button variant="ghost" size="sm" onClick={() => setDeleteId(row.id)} icon={<Trash2 size={14} />}
+                  className="hover:text-error-strong hover:bg-bg-error" />
+              )}
             </div>
           ) },
         ]}
@@ -200,19 +215,22 @@ export const ClassesList: React.FC = () => {
           </div>
           <Select label="Coach *" id="cls-coach" options={coachOptions} placeholder="Select coach…"
             error={errors.coach_id?.message}
+            disabled={!isAdmin}
             {...register('coach_id', { required: 'Coach is required' })} />
           <Select label="Plan *" id="cls-plan" options={planOptions} placeholder="Select plan…"
             error={errors.plan_id?.message}
+            disabled={!isAdmin}
             {...register('plan_id', { required: 'Plan is required' })} />
-          <Select label="Syllabus" id="cls-syllabus" options={syllabusOptions} {...register('syllabus_id')} />
+          <Select label="Syllabus" id="cls-syllabus" options={syllabusOptions} disabled={!isAdmin} {...register('syllabus_id')} />
           <Select label="Batch (Auto-Enroll Students)" id="cls-batch"
             options={batchOptions}
+            disabled={!isAdmin}
             {...register('batch_id')} />
           <Input label="Start *" id="cls-start" type="datetime-local" error={errors.scheduled_start?.message}
             {...register('scheduled_start', { required: 'Start time is required' })} />
           <Input label="End *" id="cls-end" type="datetime-local" error={errors.scheduled_end?.message}
             {...register('scheduled_end', { required: 'End time is required' })} />
-          <Input label="Max Students" id="cls-max" type="number" {...register('max_students', { valueAsNumber: true })} />
+          <Input label="Max Students" id="cls-max" type="number" disabled={!isAdmin} {...register('max_students', { valueAsNumber: true })} />
           <Input label="Meeting Link" id="cls-meet" {...register('meeting_link')} />
         </form>
       </Modal>

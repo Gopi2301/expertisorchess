@@ -5,6 +5,9 @@ export const clientsApi = {
   list: (params?: PaginationParams) =>
     apiClient.get<PaginatedResponse<Client>>('/clients', { params }).then(r => r.data),
 
+  meDashboard: () =>
+    apiClient.get<ApiResponse<any>>('/clients/me/dashboard').then(r => r.data),
+
   get: (id: string) =>
     apiClient.get<ApiResponse<Client>>(`/clients/${id}`).then(r => r.data),
 
