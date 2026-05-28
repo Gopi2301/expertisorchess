@@ -14,6 +14,8 @@ import { SyllabusDetails } from './pages/syllabus/SyllabusDetails';
 import { AttendancePage } from './pages/attendance/AttendancePage';
 import { AdminPanel } from './pages/admin/AdminPanel';
 import { CoachOnboarding } from './pages/public/CoachOnboarding';
+import { ClientOnboarding } from './pages/public/ClientOnboarding';
+import { StudentOnboarding } from './pages/public/StudentOnboarding';
 import { CoachProfile } from './pages/coaches/CoachProfile';
 import { ShieldX, RefreshCw, LogOut } from 'lucide-react';
 
@@ -151,6 +153,8 @@ export default function App() {
       <Routes>
         {/* ── Public routes (no Keycloak login required) ── */}
         <Route path="/coach-apply" element={<CoachOnboarding />} />
+        <Route path="/client-apply" element={<ClientOnboarding />} />
+        <Route path="/student-apply" element={<StudentOnboarding />} />
 
         {/* ── All other routes require authentication ── */}
         <Route path="/*" element={<ProtectedApp />} />

@@ -2,11 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Keycloak from 'keycloak-js';
 import {
-  Trophy, Star, Clock, CheckCircle2, ChevronRight,
-  User, Mail, Phone, Award, BookOpen, DollarSign,
-  ArrowLeft, Loader2, Shield, LogOut,
+  Users, Star, Calendar, CheckCircle2, ChevronRight,
+  User, Mail, Phone, MapPin, FileText,
+  ArrowLeft, Loader2, Shield, LogOut, Heart,
 } from 'lucide-react';
-import { coachesApi } from '../../api/coaches.api';
+import { clientsApi } from '../../api/clients.api';
 import apiClient from '../../api/client';
 
 // ── Keycloak instance (check-sso — does NOT force redirect) ─────────────────
@@ -18,37 +18,38 @@ const kc = new Keycloak({
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type FormData = {
-  name: string; email: string; phone?: string;
-  fide_rating?: number; rapid_rating?: number; blitz_rating?: number;
-  experience_years?: number; bio?: string; hourly_rate?: number;
-  current_syllabus?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  notes?: string;
 };
 
 type Step = 'hero' | 'signup' | 'form' | 'success';
 
-// ── Benefits list ─────────────────────────────────────────────────────────────
+// ── Benefits ──────────────────────────────────────────────────────────────────
 const BENEFITS = [
-  { icon: Trophy,   title: 'Competitive Pay',    desc: 'Set your own hourly rate and get paid on time, every time.' },
-  { icon: Star,     title: 'Flexible Schedule',  desc: 'Teach when it suits you — morning, evening, weekends.' },
-  { icon: BookOpen, title: 'Structured Curriculum', desc: 'Access our proven syllabus and class resources.' },
-  { icon: Shield,   title: 'Admin Support',      desc: 'We handle payments, scheduling and parent communication.' },
+  { icon: Users,    title: 'Family Dashboard',    desc: 'Monitor all your children\'s progress from one place.' },
+  { icon: Calendar, title: 'Class Scheduling',    desc: 'View upcoming classes and join sessions with one click.' },
+  { icon: Star,     title: 'Expert Coaches',      desc: 'FIDE-rated coaches dedicated to your child\'s growth.' },
+  { icon: Shield,   title: 'Safe & Structured',   desc: 'A trusted environment with curriculum-backed learning.' },
 ];
 
 // ── Step indicator ────────────────────────────────────────────────────────────
-const STEPS = ['Create Account', 'Your Profile', 'Review'];
+const STEPS = ['Create Account', 'Your Profile', 'Done!'];
 const StepDots: React.FC<{ current: number }> = ({ current }) => (
   <div className="flex items-center gap-2 justify-center mb-8">
     {STEPS.map((label, i) => (
       <React.Fragment key={label}>
         <div className="flex flex-col items-center gap-1">
           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all
-            ${i < current ? 'bg-green-500 text-white' : i === current ? 'bg-amber-400 text-black' : 'bg-white/10 text-white/40'}`}>
+            ${i < current ? 'bg-emerald-500 text-white' : i === current ? 'bg-violet-500 text-white' : 'bg-white/10 text-white/40'}`}>
             {i < current ? <CheckCircle2 size={16} /> : i + 1}
           </div>
-          <span className={`text-[10px] whitespace-nowrap ${i === current ? 'text-amber-400' : 'text-white/40'}`}>{label}</span>
+          <span className={`text-[10px] whitespace-nowrap ${i === current ? 'text-violet-400' : 'text-white/40'}`}>{label}</span>
         </div>
         {i < STEPS.length - 1 && (
-          <div className={`flex-1 h-px mt-[-12px] ${i < current ? 'bg-green-500' : 'bg-white/10'}`} />
+          <div className={`flex-1 h-px mt-[-12px] ${i < current ? 'bg-emerald-500' : 'bg-white/10'}`} />
         )}
       </React.Fragment>
     ))}
@@ -56,18 +57,18 @@ const StepDots: React.FC<{ current: number }> = ({ current }) => (
 );
 
 // ── Main page ─────────────────────────────────────────────────────────────────
-export const CoachOnboarding: React.FC = () => {
-  const [step, setStep]           = useState<Step>('hero');
-  const [kcReady, setKcReady]     = useState(false);
-  const [isAuth, setIsAuth]       = useState(false);
-  const [kcUser, setKcUser]       = useState<{ name: string; email: string } | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+export const ClientOnboarding: React.FC = () => {
+  const [step, setStep]               = useState<Step>('hero');
+  const [kcReady, setKcReady]         = useState(false);
+  const [isAuth, setIsAuth]           = useState(false);
+  const [kcUser, setKcUser]           = useState<{ name: string; email: string } | null>(null);
+  const [submitting, setSubmitting]   = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const kcInit = useRef(false);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>();
 
-  // Init keycloak silently (check-sso) — never forces redirect
+  // Init Keycloak silently
   useEffect(() => {
     if (kcInit.current) return;
     kcInit.current = true;
@@ -81,38 +82,30 @@ export const CoachOnboarding: React.FC = () => {
           setKcUser({ name: tp.name ?? tp.preferred_username ?? '', email: tp.email ?? '' });
 
           if (kc.token) {
-            // Set the bearer token on apiClient so coachesApi.me() is authenticated
             apiClient.defaults.headers.common['Authorization'] = `Bearer ${kc.token}`;
-            
-            coachesApi.me()
-              .then((res) => {
-                const coach = res.data;
-                if (coach) {
-                  if (coach.status === 'ACTIVE') {
-                    // Coach is already approved — redirect to main dashboard
-                    window.location.href = '/admin';
-                  } else if (coach.status === 'PENDING') {
-                    // Application is pending review — show success screen
-                    setStep('success');
-                  } else if (coach.status === 'REJECTED') {
-                    // Application rejected
-                    setSubmitError('Your coach application was previously rejected. Please contact support.');
-                    setStep('hero');
-                  } else {
-                    // Suspended / Inactive
-                    setSubmitError(`Your account is currently ${coach.status.toLowerCase()}. Please contact support.`);
-                    setStep('hero');
-                  }
-                }
+
+            // Check if client profile already exists.
+            // 200  → already onboarded, redirect to dashboard.
+            // 404  → authenticated with CLIENT role but no profile yet → show form.
+            // 403  → no CLIENT role yet (brand-new KC user) → show form so they can
+            //         submit their profile; admin will assign the role after approval.
+            // Any other error → still show form (best-effort, don't block the user).
+            clientsApi.meDashboard()
+              .then(() => {
+                // Already onboarded — go to dashboard
+                window.location.href = '/client';
               })
               .catch((err) => {
-                // If 404, the coach has not completed their onboarding profile yet
-                if (err.response?.status === 404) {
+                const status = err.response?.status;
+                // 404 = no profile, 403 = new user without CLIENT role yet
+                // In both cases, let them fill in the form
+                if (status === 404 || status === 403 || !status) {
                   setStep('form');
                   reset({ name: tp.name ?? '', email: tp.email ?? '' });
                 } else {
-                  setSubmitError('Failed to load profile. Please try again.');
+                  // Unexpected server error — still show form but surface a soft warning
                   setStep('form');
+                  reset({ name: tp.name ?? '', email: tp.email ?? '' });
                 }
               });
           } else {
@@ -121,7 +114,7 @@ export const CoachOnboarding: React.FC = () => {
           }
         }
       })
-      .catch(() => setKcReady(true)); // graceful fail
+      .catch(() => setKcReady(true));
   }, [reset]);
 
   // Auto-refresh token
@@ -130,30 +123,25 @@ export const CoachOnboarding: React.FC = () => {
     kc.onTokenExpired = () => kc.updateToken(70).catch(() => {});
   }, [isAuth]);
 
-  const goSignUp = () => {
-    kc.register({ redirectUri: window.location.href });
-  };
-  const goLogin = () => {
-    kc.login({ redirectUri: window.location.href });
-  };
-  const goLogout = () => {
-    kc.logout({ redirectUri: `${window.location.origin}/coach-apply` });
+  const goSignUp  = () => kc.register({ redirectUri: window.location.href });
+  const goLogin   = () => kc.login({ redirectUri: window.location.href });
+  const goLogout  = () => {
+    // Clear the injected auth header so no stale token lingers
+    delete (apiClient.defaults.headers.common as Record<string, unknown>)['Authorization'];
+    // Redirect to the landing page origin so Keycloak doesn't immediately
+    // re-authenticate via check-sso (which would happen if we redirect back
+    // to the same /client-apply URL)
+    kc.logout({ redirectUri: `${window.location.origin}/client-apply` });
   };
 
   const onSubmit = async (data: FormData) => {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      await coachesApi.create({
+      await clientsApi.create({
         ...data,
         keycloak_user_id: kc.subject ?? undefined,
-        hourly_rate: data.hourly_rate,
-        fide_rating: data.fide_rating ? Number(data.fide_rating) : undefined,
-        rapid_rating: data.rapid_rating ? Number(data.rapid_rating) : undefined,
-        blitz_rating: data.blitz_rating ? Number(data.blitz_rating) : undefined,
-        experience_years: data.experience_years ? Number(data.experience_years) : undefined,
-        current_syllabus: data.current_syllabus,
-      });
+      } as any);
       setStep('success');
     } catch (e: any) {
       setSubmitError(e?.response?.data?.message ?? 'Submission failed. Please try again.');
@@ -164,7 +152,8 @@ export const CoachOnboarding: React.FC = () => {
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white font-sans">
+    <div className="min-h-screen bg-[#080b14] text-white font-sans">
+
       {/* ── Hero ── */}
       {step === 'hero' && (
         <>
@@ -182,23 +171,23 @@ export const CoachOnboarding: React.FC = () => {
           {/* Hero content */}
           <div className="max-w-5xl mx-auto px-6 py-20">
             <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-400 text-sm mb-6">
-                <Star size={14} /> Now accepting coach applications
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-sm mb-6">
+                <Heart size={14} /> Enroll Your Child Today
               </div>
               <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight">
-                Teach Chess.<br />
-                <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
-                  Shape Champions.
+                Give Your Child<br />
+                <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
+                  A Chess Future.
                 </span>
               </h1>
               <p className="text-xl text-white/60 max-w-2xl mx-auto mb-10">
-                Join our growing community of chess coaches. Set your schedule, grow your students, and focus on what you love — teaching.
+                Register as a parent or guardian to enroll your children, track their progress, and manage their chess journey — all in one place.
               </p>
               <button
                 onClick={() => setStep('signup')}
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-amber-400 text-black font-bold text-lg hover:bg-amber-300 transition-all hover:scale-105 shadow-lg shadow-amber-400/20"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-violet-500 text-white font-bold text-lg hover:bg-violet-400 transition-all hover:scale-105 shadow-lg shadow-violet-500/25"
               >
-                Apply as a Coach <ChevronRight size={20} />
+                Get Started <ChevronRight size={20} />
               </button>
             </div>
 
@@ -206,9 +195,9 @@ export const CoachOnboarding: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {BENEFITS.map(({ icon: Icon, title, desc }) => (
                 <div key={title}
-                  className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/8 hover:border-amber-400/20 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-amber-400/10 flex items-center justify-center mb-4">
-                    <Icon size={20} className="text-amber-400" />
+                  className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/8 hover:border-violet-500/20 transition-all">
+                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center mb-4">
+                    <Icon size={20} className="text-violet-400" />
                   </div>
                   <h3 className="font-bold mb-1">{title}</h3>
                   <p className="text-sm text-white/50">{desc}</p>
@@ -216,25 +205,26 @@ export const CoachOnboarding: React.FC = () => {
               ))}
             </div>
 
-            {/* Eligibility */}
+            {/* How it works */}
             <div className="mt-16 bg-white/5 border border-white/10 rounded-2xl p-8">
               <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <Award size={20} className="text-amber-400" /> What we look for
+                <CheckCircle2 size={20} className="text-violet-400" /> How it works
               </h2>
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                  'FIDE rated or equivalent playing experience',
-                  'Minimum 1 year of coaching or teaching experience',
-                  'Strong communication and patience',
-                  'Reliable internet and device for online sessions',
-                  'Commitment to at least 4 classes/month',
-                  'Background in competitive chess preferred',
+                  { step: '01', title: 'Create Account', desc: 'Sign up with a free Keycloak account. It takes less than a minute.' },
+                  { step: '02', title: 'Complete Profile', desc: 'Tell us about yourself — name, contact info, and preferences.' },
+                  { step: '03', title: 'Enroll Students', desc: 'Add your children and let our admin assign them to the right class.' },
                 ].map(item => (
-                  <li key={item} className="flex items-start gap-2 text-sm text-white/70">
-                    <CheckCircle2 size={16} className="text-green-400 mt-0.5 shrink-0" /> {item}
-                  </li>
+                  <div key={item.step} className="flex gap-4">
+                    <div className="text-3xl font-extrabold text-violet-500/30">{item.step}</div>
+                    <div>
+                      <p className="font-bold text-sm">{item.title}</p>
+                      <p className="text-xs text-white/50 mt-1">{item.desc}</p>
+                    </div>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           </div>
         </>
@@ -252,17 +242,17 @@ export const CoachOnboarding: React.FC = () => {
             <StepDots current={0} />
 
             <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-amber-400/10 flex items-center justify-center mx-auto mb-4">
-                <User size={28} className="text-amber-400" />
+              <div className="w-16 h-16 rounded-2xl bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
+                <User size={28} className="text-violet-400" />
               </div>
               <h2 className="text-2xl font-bold mb-2">Create your account</h2>
               <p className="text-white/50 text-sm mb-8">
-                First, create a free Expertisor account. You'll use it to log in and manage your classes.
+                First, create a free Expertisor account. You'll use this to log in and manage your children.
               </p>
 
               <button
                 onClick={goSignUp}
-                className="w-full py-3 rounded-xl bg-amber-400 text-black font-bold hover:bg-amber-300 transition-all mb-3"
+                className="w-full py-3 rounded-xl bg-violet-500 text-white font-bold hover:bg-violet-400 transition-all mb-3"
               >
                 Create Account
               </button>
@@ -286,7 +276,7 @@ export const CoachOnboarding: React.FC = () => {
       {/* ── Profile form ── */}
       {step === 'form' && (
         <div className="min-h-screen flex flex-col items-center justify-center p-6">
-          <div className="max-w-2xl w-full">
+          <div className="max-w-xl w-full">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2 font-bold text-lg">
                 <span className="text-2xl">♟</span> Expertisor Chess
@@ -294,7 +284,7 @@ export const CoachOnboarding: React.FC = () => {
               {kcUser && (
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2 text-sm text-white/60 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
-                    <div className="w-5 h-5 rounded-full bg-amber-400 flex items-center justify-center text-black text-xs font-bold">
+                    <div className="w-5 h-5 rounded-full bg-violet-500 flex items-center justify-center text-white text-xs font-bold">
                       {kcUser.name.charAt(0).toUpperCase()}
                     </div>
                     {kcUser.name || kcUser.email}
@@ -309,9 +299,9 @@ export const CoachOnboarding: React.FC = () => {
             <StepDots current={1} />
 
             <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
-              <h2 className="text-2xl font-bold mb-1">Your Coach Profile</h2>
+              <h2 className="text-2xl font-bold mb-1">Your Parent Profile</h2>
               <p className="text-white/50 text-sm mb-8">
-                Tell us about yourself. Our admin team will review this within 2 business days.
+                Complete your profile so we can set up your family's chess account.
               </p>
 
               {submitError && (
@@ -320,7 +310,7 @@ export const CoachOnboarding: React.FC = () => {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 {/* Personal info */}
                 <div>
                   <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3 flex items-center gap-1.5">
@@ -329,67 +319,34 @@ export const CoachOnboarding: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Field label="Full Name *" icon={<User size={14} />} error={errors.name?.message}>
                       <input {...register('name', { required: 'Name is required' })}
-                        placeholder="Magnus Carlsen"
+                        placeholder="Viswanathan Anand"
                         className={inputCls(!!errors.name)} />
                     </Field>
                     <Field label="Email *" icon={<Mail size={14} />} error={errors.email?.message}>
                       <input {...register('email', { required: 'Email is required' })} type="email"
-                        placeholder="magnus@chess.com"
+                        placeholder="anand@chess.com"
                         className={inputCls(!!errors.email)} />
                     </Field>
                     <Field label="Phone" icon={<Phone size={14} />}>
                       <input {...register('phone')} placeholder="+91 98765 43210"
                         className={inputCls(false)} />
                     </Field>
-                    <Field label="Hourly Rate (₹)" icon={<DollarSign size={14} />}>
-                      <input {...register('hourly_rate', { valueAsNumber: true })} type="number"
-                        placeholder="500"
+                    <Field label="City / Address" icon={<MapPin size={14} />}>
+                      <input {...register('address')} placeholder="Chennai, India"
                         className={inputCls(false)} />
                     </Field>
-                    <div className="md:col-span-2">
-                      <Field label="Current Handling Syllabus" icon={<BookOpen size={14} />}>
-                        <input {...register('current_syllabus')}
-                          placeholder="e.g. Beginner to Intermediate / Endgame Masterclass"
-                          className={inputCls(false)} />
-                      </Field>
-                    </div>
                   </div>
                 </div>
 
-                {/* Chess credentials */}
+                {/* Notes */}
                 <div>
                   <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <Trophy size={12} /> Chess Credentials
-                  </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <Field label="FIDE Rating">
-                      <input {...register('fide_rating', { valueAsNumber: true })} type="number"
-                        placeholder="2400" className={inputCls(false)} />
-                    </Field>
-                    <Field label="Rapid Rating">
-                      <input {...register('rapid_rating', { valueAsNumber: true })} type="number"
-                        placeholder="2500" className={inputCls(false)} />
-                    </Field>
-                    <Field label="Blitz Rating">
-                      <input {...register('blitz_rating', { valueAsNumber: true })} type="number"
-                        placeholder="2600" className={inputCls(false)} />
-                    </Field>
-                    <Field label="Exp. (years)">
-                      <input {...register('experience_years', { valueAsNumber: true })} type="number"
-                        placeholder="5" className={inputCls(false)} />
-                    </Field>
-                  </div>
-                </div>
-
-                {/* Bio */}
-                <div>
-                  <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <BookOpen size={12} /> About You
+                    <FileText size={12} /> Additional Notes (optional)
                   </h3>
                   <textarea
-                    {...register('bio')}
-                    rows={4}
-                    placeholder="Tell us about your chess journey, coaching style, and what makes you a great coach…"
+                    {...register('notes')}
+                    rows={3}
+                    placeholder="Any preferences, learning goals, or information you'd like us to know…"
                     className={`${inputCls(false)} w-full resize-none`}
                   />
                 </div>
@@ -397,11 +354,11 @@ export const CoachOnboarding: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-4 rounded-xl bg-amber-400 text-black font-bold text-lg hover:bg-amber-300 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 rounded-xl bg-violet-500 text-white font-bold text-lg hover:bg-violet-400 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                 >
                   {submitting
-                    ? <><Loader2 size={18} className="animate-spin" /> Submitting…</>
-                    : <><CheckCircle2 size={18} /> Submit Application</>}
+                    ? <><Loader2 size={18} className="animate-spin" /> Creating Profile…</>
+                    : <><CheckCircle2 size={18} /> Complete Registration</>}
                 </button>
               </form>
             </div>
@@ -416,20 +373,22 @@ export const CoachOnboarding: React.FC = () => {
             <StepDots current={2} />
 
             <div className="bg-white/5 border border-white/10 rounded-2xl p-10">
-              <div className="w-20 h-20 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto mb-6">
-                <CheckCircle2 size={40} className="text-green-400" />
+              <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 size={40} className="text-emerald-400" />
               </div>
-              <h2 className="text-2xl font-bold mb-3">Application Submitted!</h2>
+              <h2 className="text-2xl font-bold mb-3">Profile Submitted!</h2>
               <p className="text-white/60 mb-8">
-                Thank you for applying. Our team will review your profile and get back to you within <strong className="text-white">2 business days</strong>.
+                Thank you for registering! Our admin team will review your profile and activate your account within <strong className="text-white">1 business day</strong>.
               </p>
-              <div className="bg-amber-400/10 border border-amber-400/20 rounded-xl p-4 text-left text-sm text-amber-300 space-y-2 mb-8">
-                <p className="flex items-center gap-2"><Clock size={14} /> Review usually takes 1–2 business days</p>
-                <p className="flex items-center gap-2"><Mail size={14} /> We'll email you with our decision</p>
-                <p className="flex items-center gap-2"><CheckCircle2 size={14} /> Once approved, you'll get full access</p>
+              <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-4 text-left text-sm text-violet-300 space-y-2 mb-8">
+                <p className="flex items-center gap-2"><Mail size={14} /> You'll receive an email once your account is activated</p>
+                <p className="flex items-center gap-2"><CheckCircle2 size={14} /> After activation, log in at the main app to access your dashboard</p>
+                <p className="flex items-center gap-2"><Users size={14} /> Then enroll your children from the Students section</p>
               </div>
-              <a href="/"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 transition-all text-sm">
+              <a
+                href="/"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 transition-all text-sm"
+              >
                 Go to Homepage
               </a>
             </div>
@@ -442,7 +401,7 @@ export const CoachOnboarding: React.FC = () => {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const inputCls = (hasError: boolean) =>
-  `w-full bg-white/5 border rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-amber-400/50 transition-colors
+  `w-full bg-white/5 border rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-violet-500/50 transition-colors
   ${hasError ? 'border-red-500/50' : 'border-white/10'}`;
 
 const Field: React.FC<{

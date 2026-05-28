@@ -13,6 +13,7 @@ import { formatDate } from '../../utils/format';
 import type { Client } from '../../types';
 
 type ClientForm = {
+  keycloak_user_id?: string;
   name: string; email: string; phone?: string;
   address?: string; notes?: string;
 };
@@ -159,6 +160,11 @@ export const ClientsList: React.FC = () => {
         }
       >
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+          {!editTarget && (
+            <Input label="Keycloak User ID" id="client-keycloak-id"
+              placeholder="UUID from Keycloak user page"
+              {...register('keycloak_user_id')} />
+          )}
           <Input label="Full Name *" id="client-name" error={errors.name?.message}
             {...register('name', { required: 'Name is required' })} />
           <Input label="Email *" id="client-email" type="email" error={errors.email?.message}
