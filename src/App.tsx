@@ -7,6 +7,9 @@ import { ClientsList } from './pages/clients/ClientsList';
 import { StudentsList } from './pages/students/StudentsList';
 import { ClassesList } from './pages/classes/ClassesList';
 import { ClassDetails } from './pages/classes/ClassDetails';
+import { AdminCalendar } from './pages/classes/AdminCalendar';
+import { CoachCalendar } from './pages/classes/CoachCalendar';
+import { StudentCalendar } from './pages/classes/StudentCalendar';
 import { PlansList } from './pages/plans/PlansList';
 import { BatchesList } from './pages/batches/BatchesList';
 import { SyllabusList } from './pages/syllabus/SyllabusList';
@@ -113,6 +116,7 @@ const ProtectedApp: React.FC = () => (
           <Route path="/admin/students" element={<ProtectedRoute roles={['SUPER_ADMIN']}><StudentsList /></ProtectedRoute>} />
           <Route path="/admin/classes" element={<ProtectedRoute roles={['SUPER_ADMIN']}><ClassesList /></ProtectedRoute>} />
           <Route path="/admin/classes/:id" element={<ProtectedRoute roles={['SUPER_ADMIN']}><ClassDetails /></ProtectedRoute>} />
+          <Route path="/admin/calendar" element={<ProtectedRoute roles={['SUPER_ADMIN']}><AdminCalendar /></ProtectedRoute>} />
           <Route path="/admin/plans" element={<ProtectedRoute roles={['SUPER_ADMIN']}><PlansList /></ProtectedRoute>} />
           <Route path="/admin/batches" element={<ProtectedRoute roles={['SUPER_ADMIN']}><BatchesList /></ProtectedRoute>} />
           <Route path="/admin/syllabus" element={<ProtectedRoute roles={['SUPER_ADMIN']}><SyllabusList /></ProtectedRoute>} />
@@ -125,6 +129,7 @@ const ProtectedApp: React.FC = () => (
           <Route path="/coach/students" element={<ProtectedRoute roles={['COACH']}><StudentsList /></ProtectedRoute>} />
           <Route path="/coach/classes" element={<ProtectedRoute roles={['COACH']}><ClassesList /></ProtectedRoute>} />
           <Route path="/coach/classes/:id" element={<ProtectedRoute roles={['COACH']}><ClassDetails /></ProtectedRoute>} />
+          <Route path="/coach/calendar" element={<ProtectedRoute roles={['COACH']}><CoachCalendar /></ProtectedRoute>} />
           <Route path="/coach/batches" element={<ProtectedRoute roles={['COACH']}><BatchesList /></ProtectedRoute>} />
           <Route path="/coach/syllabus" element={<ProtectedRoute roles={['COACH']}><SyllabusList /></ProtectedRoute>} />
           <Route path="/coach/syllabus/:id" element={<ProtectedRoute roles={['COACH']}><SyllabusDetails /></ProtectedRoute>} />
@@ -139,6 +144,7 @@ const ProtectedApp: React.FC = () => (
           {/* STUDENT Routes */}
           <Route path="/student" element={<ProtectedRoute roles={['STUDENT']}><StudentDashboard /></ProtectedRoute>} />
           <Route path="/student/classes" element={<ProtectedRoute roles={['STUDENT']}><ClassesList /></ProtectedRoute>} />
+          <Route path="/student/calendar" element={<ProtectedRoute roles={['STUDENT']}><StudentCalendar /></ProtectedRoute>} />
           <Route path="/student/profile" element={<ProtectedRoute roles={['STUDENT']}><CoachProfile /></ProtectedRoute>} />
         </Route>
       </Routes>

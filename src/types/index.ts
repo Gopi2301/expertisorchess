@@ -109,6 +109,7 @@ export interface Class {
   actual_end?: string;
   coach_status?: AttendanceStatus;
   admin_verified: boolean;
+  attachment_url?: string;
   created_at: string;
   updated_at: string;
   coach?: Coach;

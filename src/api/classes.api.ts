@@ -1,11 +1,13 @@
 import apiClient from './client';
 import type { Class, StudentClass, PaginatedResponse, ApiResponse, PaginationParams } from '../types';
 
+export type CalendarParams = PaginationParams & { date_from?: string; date_to?: string; coach_id?: string; status?: string };
+
 export const classesApi = {
-  list: (params?: PaginationParams) =>
+  list: (params?: CalendarParams) =>
     apiClient.get<PaginatedResponse<Class>>('/classes', { params }).then(r => r.data),
   
-  listMy: (params?: PaginationParams) =>
+  listMy: (params?: CalendarParams) =>
     apiClient.get<PaginatedResponse<Class>>('/classes/my', { params }).then(r => r.data),
 
   get: (id: string) =>
@@ -26,7 +28,7 @@ export const classesApi = {
   publish: (id: string) =>
     apiClient.post(`/classes/${id}/publish`).then(r => r.data),
 
-  complete: (id: string, data: { recording_url?: string; actual_start?: string; actual_end?: string; coach_status?: string }) =>
+  complete: (id: string, data: FormData) =>
     apiClient.post(`/classes/${id}/complete`, data).then(r => r.data),
 
   verify: (id: string) =>
@@ -45,4 +47,11 @@ export const classesApi = {
   // Syllabus linking
   linkSyllabus: (classId: string, syllabusId: string) =>
     apiClient.patch(`/classes/${classId}/syllabus`, { syllabus_id: syllabusId }).then(r => r.data),
+
+  // Calendar-specific
+  listForStudent: (params?: CalendarParams) =>
+    apiClient.get<PaginatedResponse<Class>>('/classes/student-schedule', { params }).then(r => r.data),
+
+  listPendingConfirm: (params?: CalendarParams) =>
+    apiClient.get<PaginatedResponse<Class>>('/classes/pending-confirm', { params }).then(r => r.data),
 };

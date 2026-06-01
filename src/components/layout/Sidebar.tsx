@@ -1,22 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen,
   Calendar, ClipboardList, FileText, ShieldCheck,
   ChevronLeft, ChevronRight, LogOut, Crown, Layers, User,
+  CalendarCheck,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { classesApi } from '../../api/classes.api';
 
 interface NavItem {
   to: string;
   icon: React.ReactNode;
   label: string;
   end?: boolean;
+  badge?: number;
 }
 
 export const Sidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const { user, logout, hasRole } = useAuth();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  // For coaches: load pending confirmation count
+  useEffect(() => {
+    if (hasRole('COACH')) {
+      classesApi.listPendingConfirm({ limit: 50 })
+        .then(r => setPendingCount(r.data.length))
+        .catch(() => {});
+    }
+  }, [hasRole]);
 
   const getNavItems = (): NavItem[] => {
     if (hasRole('SUPER_ADMIN')) {
@@ -25,6 +38,7 @@ export const Sidebar: React.FC = () => {
         { to: '/admin/coaches', icon: <Crown size={18} />, label: 'Coaches' },
         { to: '/admin/clients', icon: <Users size={18} />, label: 'Clients' },
         { to: '/admin/students', icon: <GraduationCap size={18} />, label: 'Students' },
+        { to: '/admin/calendar', icon: <CalendarCheck size={18} />, label: 'Calendar' },
         { to: '/admin/classes', icon: <Calendar size={18} />, label: 'Classes' },
         { to: '/admin/batches', icon: <Layers size={18} />, label: 'Groups' },
         { to: '/admin/plans', icon: <FileText size={18} />, label: 'Plans' },
@@ -37,6 +51,7 @@ export const Sidebar: React.FC = () => {
     if (hasRole('COACH')) {
       return [
         { to: '/coach', icon: <LayoutDashboard size={18} />, label: 'Dashboard', end: true },
+        { to: '/coach/calendar', icon: <CalendarCheck size={18} />, label: 'Calendar', badge: pendingCount },
         { to: '/coach/students', icon: <GraduationCap size={18} />, label: 'Students' },
         { to: '/coach/classes', icon: <Calendar size={18} />, label: 'Classes' },
         { to: '/coach/batches', icon: <Layers size={18} />, label: 'Groups' },
@@ -55,7 +70,8 @@ export const Sidebar: React.FC = () => {
     if (hasRole('STUDENT')) {
       return [
         { to: '/student', icon: <LayoutDashboard size={18} />, label: 'Dashboard', end: true },
-        { to: '/student/classes', icon: <Calendar size={18} />, label: 'My Classes' },
+        { to: '/student/calendar', icon: <CalendarCheck size={18} />, label: 'My Schedule' },
+        { to: '/student/classes', icon: <Calendar size={18} />, label: 'Classes' },
         { to: '/student/profile', icon: <User size={18} />, label: 'Profile' },
       ];
     }
@@ -104,7 +120,12 @@ export const Sidebar: React.FC = () => {
             title={collapsed ? item.label : undefined}
           >
             {item.icon}
-            {!collapsed && <span>{item.label}</span>}
+            {!collapsed && <span className="flex-1">{item.label}</span>}
+            {!collapsed && item.badge != null && item.badge > 0 && (
+              <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-amber-400 text-black text-[10px] font-bold">
+                {item.badge}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>

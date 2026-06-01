@@ -88,8 +88,6 @@ export const ClassesList: React.FC = () => {
           await classesApi.update(editTarget.id, payload);
         } else {
           await classesApi.coachUpdate(editTarget.id, {
-            title: payload.title,
-            meeting_link: payload.meeting_link,
             scheduled_start: payload.scheduled_start,
             scheduled_end: payload.scheduled_end,
           });
@@ -162,7 +160,22 @@ export const ClassesList: React.FC = () => {
           { key: 'title', header: 'Title', render: row => (
             <Link to={`${prefix}/classes/${row.id}`} className="font-medium text-text-primary hover:text-bg-brand">{row.title}</Link>
           ) },
-          { key: 'status', header: 'Status', render: row => <ClassStatusBadge status={row.status} /> },
+          { key: 'status', header: 'Status', render: row => (
+            <div className="flex flex-col gap-1 items-start">
+              <ClassStatusBadge status={row.status} />
+              {row.status === 'COMPLETED' && (
+                row.admin_verified ? (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">
+                    ✓ Verified
+                  </span>
+                ) : (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-bold border border-amber-500/20 animate-pulse">
+                    ⚠ Needs Verification
+                  </span>
+                )
+              )}
+            </div>
+          ) },
           { key: 'scheduled_start', header: 'Scheduled', render: row => formatDateTime(row.scheduled_start) },
           { key: 'max_students', header: 'Capacity', render: row => `${row.max_students} students` },
           {
@@ -180,7 +193,9 @@ export const ClassesList: React.FC = () => {
                 <Button variant="ghost" size="sm" onClick={() => onPublish(row.id)} icon={<CheckCircle size={14} />}
                   className="text-text-success hover:bg-bg-success/10" />
               )}
-              <Button variant="ghost" size="sm" onClick={() => openEdit(row)} icon={<Pencil size={14} />} />
+              {(isAdmin || row.status === 'DRAFT') && (
+                <Button variant="ghost" size="sm" onClick={() => openEdit(row)} icon={<Pencil size={14} />} />
+              )}
               {isAdmin && (
                 <Button variant="ghost" size="sm" onClick={() => setDeleteId(row.id)} icon={<Trash2 size={14} />}
                   className="hover:text-error-strong hover:bg-bg-error" />
@@ -213,7 +228,8 @@ export const ClassesList: React.FC = () => {
       >
         <form className="grid grid-cols-2 gap-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="col-span-2">
-            <Input label="Title *" id="cls-title" error={errors.title?.message}
+            <Input label={isAdmin ? "Title *" : "Title (Read-Only)"} id="cls-title" error={errors.title?.message}
+              disabled={!isAdmin}
               {...register('title', { required: 'Title is required' })} />
           </div>
           <Select label="Coach *" id="cls-coach" options={coachOptions} placeholder="Select coach…"
@@ -234,7 +250,7 @@ export const ClassesList: React.FC = () => {
           <Input label="End *" id="cls-end" type="datetime-local" error={errors.scheduled_end?.message}
             {...register('scheduled_end', { required: 'End time is required' })} />
           <Input label="Max Students" id="cls-max" type="number" disabled={!isAdmin} {...register('max_students', { valueAsNumber: true })} />
-          <Input label="Meeting Link" id="cls-meet" {...register('meeting_link')} />
+          <Input label={isAdmin ? "Meeting Link" : "Meeting Link (Read-Only)"} id="cls-meet" disabled={!isAdmin} {...register('meeting_link')} />
         </form>
       </Modal>
 

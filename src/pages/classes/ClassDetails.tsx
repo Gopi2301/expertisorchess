@@ -57,6 +57,8 @@ export const ClassDetails: React.FC = () => {
     recording_url: '',
   });
 
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+
   // Edit states
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -170,9 +172,25 @@ export const ClassDetails: React.FC = () => {
     if (!id) return;
     try {
       setCompleting(true);
-      await classesApi.complete(id, completionData);
+      const formData = new FormData();
+      if (completionData.actual_start) {
+        formData.append('actual_start', new Date(completionData.actual_start).toISOString());
+      }
+      if (completionData.actual_end) {
+        formData.append('actual_end', new Date(completionData.actual_end).toISOString());
+      }
+      formData.append('coach_status', completionData.coach_status);
+      if (completionData.recording_url?.trim()) {
+        formData.append('recording_url', completionData.recording_url.trim());
+      }
+      if (attachmentFile) {
+        formData.append('attachment', attachmentFile);
+      }
+
+      await classesApi.complete(id, formData);
       addToast('Class marked as completed', 'success');
       setShowCompleteModal(false);
+      setAttachmentFile(null);
       fetchClass();
     } catch (error: any) {
       addToast(error?.response?.data?.message ?? 'Failed to complete class', 'error');
@@ -251,8 +269,6 @@ export const ClassDetails: React.FC = () => {
         await classesApi.update(id, payload);
       } else {
         await classesApi.coachUpdate(id, {
-          title: payload.title,
-          meeting_link: payload.meeting_link,
           scheduled_start: payload.scheduled_start,
           scheduled_end: payload.scheduled_end,
         });
@@ -298,7 +314,7 @@ export const ClassDetails: React.FC = () => {
               Complete Class
             </Button>
           )}
-          {classData.status === 'COMPLETED' && !classData.admin_verified && (
+          {classData.status === 'COMPLETED' && !classData.admin_verified && isAdmin && (
             <Button onClick={handleVerify} loading={verifying} variant="primary" icon={<ShieldCheck size={16} />}>
               Verify (Admin)
             </Button>
@@ -308,7 +324,9 @@ export const ClassDetails: React.FC = () => {
               Publish Class
             </Button>
           )}
-          <Button variant="ghost" onClick={openEdit} icon={<Pencil size={16} />}>Edit</Button>
+          {(isAdmin || classData.status === 'DRAFT') && (
+            <Button variant="ghost" onClick={openEdit} icon={<Pencil size={16} />}>Edit</Button>
+          )}
           {isAdmin && (
             <Button variant="ghost" onClick={handleDelete} className="text-error-strong hover:bg-bg-error" icon={<Trash2 size={16} />}>
               Delete
@@ -374,6 +392,20 @@ export const ClassDetails: React.FC = () => {
                       <a href={classData.meeting_link} target="_blank" rel="noopener noreferrer" 
                         className="text-sm text-bg-brand hover:underline flex items-center gap-1 font-medium">
                         Join Meeting <ExternalLink size={12} />
+                      </a>
+                    </div>
+                  </div>
+                )}
+                {classData.attachment_url && (
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-bg-success/10 rounded-lg text-text-success">
+                      <ExternalLink size={18} />
+                    </div>
+                    <div>
+                      <p className="text-xs text-text-muted uppercase tracking-wider font-semibold">Attachment</p>
+                      <a href={classData.attachment_url} target="_blank" rel="noopener noreferrer" 
+                        className="text-sm text-text-success hover:underline flex items-center gap-1 font-medium">
+                        View Attachment <ExternalLink size={12} />
                       </a>
                     </div>
                   </div>
@@ -655,6 +687,38 @@ export const ClassDetails: React.FC = () => {
             onChange={(e) => setCompletionData(prev => ({ ...prev, recording_url: e.target.value }))}
           />
 
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">
+              Class Completion Attachment (Optional)
+            </label>
+            <div className="flex flex-col gap-1.5">
+              <input
+                type="file"
+                accept=".png,.jpg,.jpeg,.pdf"
+                className="w-full text-sm text-text-muted bg-bg-muted border border-border rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-bg-strong file:text-text-primary hover:file:bg-bg-muted cursor-pointer"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  if (file) {
+                    const allowedExts = ['.png', '.jpg', '.jpeg', '.pdf'];
+                    const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                    if (!allowedExts.includes(fileExt)) {
+                      addToast('Only PNG, JPG, JPEG, and PDF files are allowed.', 'error');
+                      e.target.value = '';
+                      setAttachmentFile(null);
+                      return;
+                    }
+                    setAttachmentFile(file);
+                  } else {
+                    setAttachmentFile(null);
+                  }
+                }}
+              />
+              <p className="text-[11px] text-text-muted">
+                Allowed types: PNG, JPEG (screenshot), or PDF.
+              </p>
+            </div>
+          </div>
+
           <div className="pt-4 flex gap-3">
             <Button fullWidth variant="ghost" onClick={() => setShowCompleteModal(false)}>Cancel</Button>
             <Button fullWidth variant="primary" onClick={handleComplete} loading={completing}>
@@ -673,7 +737,8 @@ export const ClassDetails: React.FC = () => {
       >
         <form className="grid grid-cols-2 gap-4 pt-2" onSubmit={handleSubmit(onEditSubmit)}>
           <div className="col-span-2">
-            <Input label="Title *" id="cls-title" error={errors.title?.message}
+            <Input label={isAdmin ? "Title *" : "Title (Read-Only)"} id="cls-title" error={errors.title?.message}
+              disabled={!isAdmin}
               {...register('title', { required: 'Title is required' })} />
           </div>
           <Select label="Coach *" id="cls-coach" 
@@ -701,7 +766,7 @@ export const ClassDetails: React.FC = () => {
           <Input label="End *" id="cls-end" type="datetime-local" error={errors.scheduled_end?.message}
             {...register('scheduled_end', { required: 'End time is required' })} />
           <Input label="Max Students" id="cls-max" type="number" disabled={!isAdmin} {...register('max_students', { valueAsNumber: true })} />
-          <Input label="Meeting Link" id="cls-meet" {...register('meeting_link')} />
+          <Input label={isAdmin ? "Meeting Link" : "Meeting Link (Read-Only)"} id="cls-meet" disabled={!isAdmin} {...register('meeting_link')} />
           
           <div className="col-span-2 pt-4 flex gap-3">
             <Button fullWidth variant="ghost" onClick={() => setShowEditModal(false)}>Cancel</Button>
