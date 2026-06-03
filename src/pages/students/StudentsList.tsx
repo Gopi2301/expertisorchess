@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Plus, Pencil, Trash2, GraduationCap, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, GraduationCap, Search, Mail, UserCheck } from 'lucide-react';
 import { Table } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
@@ -24,10 +24,16 @@ export const StudentsList: React.FC = () => {
   const { addToast } = useContext(ToastContext);
   const { hasRole, user } = useAuth();
   const isAdmin = hasRole('SUPER_ADMIN');
+  const isClient = hasRole('CLIENT');
+
+  const [clientId, setClientId] = useState<string | null>(null);
 
   const { data, meta, loading, refetch, params, updateParams } = useApi<Student>({
     fetcher: studentsApi.list,
+    initialParams: { page: 1, limit: 20 },
+    autoFetch: !isClient,
   });
+
   const [clients, setClients] = useState<Client[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Student | null>(null);
@@ -36,21 +42,57 @@ export const StudentsList: React.FC = () => {
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<StudentForm>();
 
-  // Load clients for dropdown
+  // Fetch client ID if the logged-in user is a client
+  useEffect(() => {
+    if (isClient) {
+      clientsApi.meDashboard()
+        .then(res => {
+          const cid = res.data.id;
+          setClientId(cid);
+          updateParams({ client_id: cid });
+        })
+        .catch(err => console.error(err));
+    }
+  }, [isClient]);
+
+  // Trigger refetch once client_id parameter is set
+  useEffect(() => {
+    if (isClient && params.client_id) {
+      refetch();
+    }
+  }, [isClient, params.client_id]);
+
+  // Load clients for dropdown (only admin needs this)
   useEffect(() => {
     if (isAdmin) {
       clientsApi.list({ limit: 100 }).then(r => setClients(r.data)).catch(() => {});
     }
   }, [isAdmin]);
 
-  const openCreate = () => { setEditTarget(null); reset({ chess_level: 'BEGINNER', status: 'ACTIVE', relation_to_client: 'PARENT' }); setModalOpen(true); };
+  const openCreate = () => {
+    setEditTarget(null);
+    reset({
+      chess_level: 'BEGINNER',
+      status: 'ACTIVE',
+      relation_to_client: 'PARENT',
+      client_id: isClient ? clientId || '' : '',
+    });
+    setModalOpen(true);
+  };
+
   const openEdit = (s: Student) => {
     setEditTarget(s);
     reset({
-      name: s.name, client_id: s.client_id, email: s.email ?? '',
-      phone: s.phone ?? '', age: s.age, chess_level: s.chess_level,
-      current_rating: s.current_rating, goals: s.goals ?? '',
-      status: s.status, relation_to_client: s.relation_to_client,
+      name: s.name,
+      client_id: s.client_id,
+      email: s.email ?? '',
+      phone: s.phone ?? '',
+      age: s.age,
+      chess_level: s.chess_level,
+      current_rating: s.current_rating,
+      goals: s.goals ?? '',
+      status: s.status,
+      relation_to_client: s.relation_to_client,
     });
     setModalOpen(true);
   };
@@ -81,7 +123,9 @@ export const StudentsList: React.FC = () => {
       addToast('Student deleted', 'success');
       setDeleteId(null);
       refetch();
-    } catch { addToast('Failed to delete', 'error'); }
+    } catch {
+      addToast('Failed to delete', 'error');
+    }
   };
 
   const clientOptions = clients.map(c => ({ value: c.id, label: `${c.name} (${c.email})` }));
@@ -99,9 +143,30 @@ export const StudentsList: React.FC = () => {
     { key: 'chess_level', header: 'Level', render: (row: Student) => <ChessLevelBadge level={row.chess_level} /> },
     { key: 'current_rating', header: 'Rating', render: (row: Student) => row.current_rating ?? '—' },
     { key: 'status', header: 'Status', render: (row: Student) => <StatusBadge status={row.status} /> },
+    ...(isClient ? [{
+      key: 'account',
+      header: 'Account',
+      render: (row: Student) => {
+        if (!(row as any).email) return <span className="text-text-muted text-xs">—</span>;
+        return (row as any).keycloak_user_id
+          ? <span className="flex items-center gap-1 text-xs text-emerald-400"><UserCheck size={12} /> Active</span>
+          : <span className="flex items-center gap-1 text-xs text-amber-400"><Mail size={12} /> Invite Sent</span>;
+      },
+    }] : []),
   ];
 
-  if (!isAdmin) {
+  if (isAdmin || isClient) {
+    columns.push({
+      key: 'actions', header: '',
+      render: (row: Student) => (
+        <div className="flex items-center justify-end gap-1">
+          <Button variant="ghost" size="sm" onClick={() => openEdit(row)} icon={<Pencil size={14} />} />
+          <Button variant="ghost" size="sm" onClick={() => setDeleteId(row.id)} icon={<Trash2 size={14} />}
+            className="hover:text-error-strong hover:bg-bg-error" />
+        </div>
+      ),
+    } as any);
+  } else {
     columns.push({
       key: 'classes',
       header: 'Class Details',
@@ -125,17 +190,6 @@ export const StudentsList: React.FC = () => {
         );
       }
     } as any);
-  } else {
-    columns.push({
-      key: 'actions', header: '',
-      render: (row: Student) => (
-        <div className="flex items-center justify-end gap-1">
-          <Button variant="ghost" size="sm" onClick={() => openEdit(row)} icon={<Pencil size={14} />} />
-          <Button variant="ghost" size="sm" onClick={() => setDeleteId(row.id)} icon={<Trash2 size={14} />}
-            className="hover:text-error-strong hover:bg-bg-error" />
-        </div>
-      ),
-    } as any);
   }
 
   return (
@@ -147,7 +201,7 @@ export const StudentsList: React.FC = () => {
           </h1>
           <p className="text-sm text-text-muted mt-0.5">{meta?.total ?? 0} total students</p>
         </div>
-        {isAdmin && <Button onClick={openCreate} icon={<Plus size={16} />}>Add Student</Button>}
+        {(isAdmin || isClient) && <Button onClick={openCreate} icon={<Plus size={16} />}>Add Student</Button>}
       </div>
 
       <div className="relative max-w-xs">
@@ -187,13 +241,17 @@ export const StudentsList: React.FC = () => {
         <form className="grid grid-cols-2 gap-4" onSubmit={handleSubmit(onSubmit)}>
           <Input label="Full Name *" id="s-name" error={errors.name?.message}
             {...register('name', { required: 'Name is required' })} />
-          <Select
-            label="Client (Parent/Guardian) *" id="s-client"
-            options={clientOptions}
-            placeholder="Select client…"
-            error={errors.client_id?.message}
-            {...register('client_id', { required: 'Client is required' })}
-          />
+          {isClient ? (
+            <input type="hidden" {...register('client_id', { required: 'Client is required' })} />
+          ) : (
+            <Select
+              label="Client (Parent/Guardian) *" id="s-client"
+              options={clientOptions}
+              placeholder="Select client…"
+              error={errors.client_id?.message}
+              {...register('client_id', { required: 'Client is required' })}
+            />
+          )}
           <Input label="Email" id="s-email" type="email" {...register('email')} />
           <Input label="Phone" id="s-phone" {...register('phone')} />
           <Input label="Age" id="s-age" type="number" {...register('age', { valueAsNumber: true })} />
@@ -232,7 +290,6 @@ export const StudentsList: React.FC = () => {
           </div>
         </form>
       </Modal>
-
       <Modal open={!!deleteId} onClose={() => setDeleteId(null)} title="Delete Student" size="sm"
         footer={
           <>

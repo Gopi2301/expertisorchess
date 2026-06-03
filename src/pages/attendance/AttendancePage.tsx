@@ -3,6 +3,7 @@ import { ClipboardList, CheckCircle, Search, Calendar, Users, User, LayoutGrid, 
 import { Button } from '../../components/ui/Button';
 import { AttendanceBadge } from '../../components/ui/Badge';
 import { ToastContext } from '../../components/layout/AppLayout';
+import { useAuth } from '../../contexts/AuthContext';
 import { classesApi } from '../../api/classes.api';
 import { attendanceApi, type AttendanceRecord } from '../../api/attendance.api';
 import { getInitials, formatDateTime } from '../../utils/format';
@@ -10,6 +11,9 @@ import type { Class, Attendance, AttendanceStatus } from '../../types';
 
 export const AttendancePage: React.FC = () => {
   const { addToast } = useContext(ToastContext);
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole('SUPER_ADMIN');
+
   const [classes, setClasses] = useState<Class[]>([]);
   const [selectedClassId, setSelectedClassId] = useState('');
   const [existing, setExisting] = useState<Attendance[]>([]);
@@ -23,11 +27,12 @@ export const AttendancePage: React.FC = () => {
 
   useEffect(() => {
     setClassesLoading(true);
-    classesApi.list({ limit: 100, sortBy: 'scheduled_start', sortOrder: 'desc' })
+    const fetcher = isAdmin ? classesApi.list : classesApi.listMy;
+    fetcher({ limit: 100, sortBy: 'scheduled_start', sortOrder: 'desc' })
       .then(r => setClasses(r.data))
       .catch(() => addToast('Failed to load classes', 'error'))
       .finally(() => setClassesLoading(false));
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     if (!selectedClassId) { 

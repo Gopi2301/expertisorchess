@@ -63,6 +63,7 @@ export const Sidebar: React.FC = () => {
     if (hasRole('CLIENT')) {
       return [
         { to: '/client', icon: <LayoutDashboard size={18} />, label: 'Dashboard', end: true },
+        { to: '/client/calendar', icon: <CalendarCheck size={18} />, label: 'Calendar' },
         { to: '/client/students', icon: <GraduationCap size={18} />, label: 'My Students' },
         { to: '/client/profile', icon: <User size={18} />, label: 'Profile' },
       ];
@@ -83,8 +84,9 @@ export const Sidebar: React.FC = () => {
   return (
     <aside
       className={`
-        relative flex flex-col shrink-0 h-screen bg-bg-strong border-r border-border
+        relative flex-col shrink-0 h-screen bg-bg-strong border-r border-border
         transition-all duration-300 ease-in-out
+        hidden md:flex
         ${collapsed ? 'w-16' : 'w-60'}
       `}
     >

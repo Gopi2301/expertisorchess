@@ -30,7 +30,7 @@ type FormData = {
   relation_to_client: StudentRelation;
 };
 
-type Step = 'hero' | 'login' | 'form' | 'success';
+type Step = 'hero' | 'login' | 'form' | 'success' | 'claim' | 'claiming' | 'claimed';
 
 const CHESS_LEVELS: { value: ChessLevel; label: string; desc: string; icon: string }[] = [
   { value: 'BEGINNER',     label: 'Beginner',     desc: 'New to chess, learning the basics',      icon: '♟' },
@@ -77,7 +77,10 @@ const StepDots: React.FC<{ current: number }> = ({ current }) => (
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export const StudentOnboarding: React.FC = () => {
-  const [step, setStep]               = useState<Step>('hero');
+  // Read invite token from query params
+  const inviteToken = new URLSearchParams(window.location.search).get('token');
+
+  const [step, setStep]               = useState<Step>(inviteToken ? 'claim' : 'hero');
   const [kcReady, setKcReady]         = useState(false);
   const [isAuth, setIsAuth]           = useState(false);
   const [kcUser, setKcUser]           = useState<{ name: string; email: string } | null>(null);
@@ -116,6 +119,20 @@ export const StudentOnboarding: React.FC = () => {
             apiClient.defaults.headers.common['Authorization'] = `Bearer ${kc.token}`;
           }
 
+          // ── Invite claim flow ───────────────────────────────────────────────
+          if (inviteToken) {
+            setStep('claiming');
+            studentsApi.claimInvite(inviteToken)
+              .then(() => setStep('claimed'))
+              .catch((e: any) => {
+                const msg = e?.response?.data?.message ?? 'Failed to activate account. The link may have expired.';
+                setSubmitError(msg);
+                setStep('claim');
+              });
+            return;
+          }
+
+          // ── Normal parent enrollment flow ───────────────────────────────────
           // Must have CLIENT role
           if (!roles.includes('CLIENT')) {
             setSubmitError('Only registered parents/guardians (CLIENT role) can enroll students. Please complete the parent registration first.');
@@ -145,6 +162,7 @@ export const StudentOnboarding: React.FC = () => {
   }, [isAuth]);
 
   const goLogin  = () => kc.login({ redirectUri: window.location.href });
+  const goLoginForClaim = () => kc.register({ redirectUri: window.location.href });
   const goLogout = () => {
     // Clear the injected auth header so no stale token lingers
     delete (apiClient.defaults.headers.common as Record<string, unknown>)['Authorization'];
@@ -492,6 +510,95 @@ export const StudentOnboarding: React.FC = () => {
                   Go to Dashboard <ChevronRight size={16} />
                 </a>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Invite Claim Step ── */}
+      {(step === 'claim') && (
+        <div className="min-h-screen flex flex-col items-center justify-center p-6">
+          <div className="max-w-md w-full">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-10 text-center">
+              {/* Chess Icon */}
+              <div className="w-20 h-20 rounded-2xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center mx-auto mb-6">
+                <GraduationCap size={36} className="text-amber-400" />
+              </div>
+              <h1 className="text-2xl font-bold mb-2">You've Been Enrolled! ♟</h1>
+              <p className="text-white/50 text-sm mb-8">
+                Your parent/guardian has enrolled you at <strong className="text-white">Expertisor Chess Academy</strong>.
+                Create your personal student account to access your dashboard and class schedule.
+              </p>
+
+              {submitError && (
+                <div className="mb-6 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-left">
+                  {submitError}
+                  {submitError.includes('expired') && (
+                    <p className="mt-2 text-white/40">Please ask your parent/guardian to resend the invite from the dashboard.</p>
+                  )}
+                </div>
+              )}
+
+              {!kcReady ? (
+                <p className="text-white/30 text-sm flex items-center justify-center gap-2">
+                  <Loader2 size={16} className="animate-spin" /> Connecting…
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  <button
+                    id="btn-create-student-account"
+                    onClick={goLoginForClaim}
+                    className="w-full py-3 rounded-xl bg-amber-400 text-black font-bold hover:bg-amber-300 transition-all flex items-center justify-center gap-2"
+                  >
+                    <GraduationCap size={18} /> Create My Account
+                  </button>
+                  <button
+                    onClick={goLogin}
+                    className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 transition-all text-sm"
+                  >
+                    I already have an account — Sign In
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Auto-claiming ── */}
+      {step === 'claiming' && (
+        <div className="min-h-screen flex flex-col items-center justify-center p-6">
+          <div className="text-center">
+            <Loader2 size={48} className="animate-spin text-amber-400 mx-auto mb-6" />
+            <h2 className="text-xl font-bold mb-2">Activating your account…</h2>
+            <p className="text-white/50 text-sm">Please wait while we link your student profile.</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Invite Claimed Successfully ── */}
+      {step === 'claimed' && (
+        <div className="min-h-screen flex flex-col items-center justify-center p-6">
+          <div className="max-w-md w-full text-center">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-10">
+              <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 size={40} className="text-emerald-400" />
+              </div>
+              <h2 className="text-2xl font-bold mb-3">Account Activated! 🎉</h2>
+              <p className="text-white/60 mb-8">
+                Your student account is ready. You can now log in independently and view your class schedule, track attendance, and more.
+              </p>
+              <div className="bg-amber-400/10 border border-amber-400/20 rounded-xl p-4 text-left text-sm text-amber-300 space-y-2 mb-8">
+                <p className="flex items-center gap-2"><GraduationCap size={14} /> Access your personal student dashboard</p>
+                <p className="flex items-center gap-2"><CheckCircle2 size={14} /> View your upcoming chess classes</p>
+                <p className="flex items-center gap-2"><Trophy size={14} /> Track your progress and attendance</p>
+              </div>
+              <a
+                href="/student"
+                className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-amber-400 text-black font-bold hover:bg-amber-300 transition-all"
+              >
+                Go to My Dashboard <ChevronRight size={16} />
+              </a>
             </div>
           </div>
         </div>

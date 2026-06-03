@@ -52,6 +52,9 @@ export const classesApi = {
   listForStudent: (params?: CalendarParams) =>
     apiClient.get<PaginatedResponse<Class>>('/classes/student-schedule', { params }).then(r => r.data),
 
+  listForClient: (params?: CalendarParams) =>
+    apiClient.get<PaginatedResponse<Class>>('/classes/client-schedule', { params }).then(r => r.data),
+
   listPendingConfirm: (params?: CalendarParams) =>
     apiClient.get<PaginatedResponse<Class>>('/classes/pending-confirm', { params }).then(r => r.data),
 };

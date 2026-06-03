@@ -443,10 +443,9 @@ export const ClientOnboarding: React.FC = () => {
                 <CheckCircle2 size={40} style={{ color: '#4ADE80' }} />
               </div>
 
-              <h2 className="text-2xl font-bold mb-3 text-white">Profile Submitted!</h2>
+              <h2 className="text-2xl font-bold mb-3 text-white">Registration Complete!</h2>
               <p className="text-white/60 mb-8">
-                Thank you for registering! Our admin team will review your profile and activate your account within{' '}
-                <strong className="text-white">1 business day</strong>.
+                Thank you for registering! Your account has been activated automatically. You can now access your dashboard.
               </p>
 
               {/* Info bullets */}
@@ -455,22 +454,19 @@ export const ClientOnboarding: React.FC = () => {
                 style={{ backgroundColor: 'rgba(255,242,0,0.06)', borderColor: 'rgba(255,242,0,0.15)' }}
               >
                 <p className="flex items-center gap-2" style={{ color: '#FFF200' }}>
-                  <Mail size={14} /> You'll receive an email once your account is activated
+                  <CheckCircle2 size={14} /> Your account is fully active
                 </p>
                 <p className="flex items-center gap-2" style={{ color: '#FFF200' }}>
-                  <CheckCircle2 size={14} /> After activation, log in to access your dashboard
-                </p>
-                <p className="flex items-center gap-2" style={{ color: '#FFF200' }}>
-                  <Users size={14} /> Then enroll your children from the Students section
+                  <Users size={14} /> You can now enroll your children from the Students section
                 </p>
               </div>
 
               <a
-                href="/"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm border text-white/70 hover:bg-white/10 transition-all"
-                style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
+                href="/client"
+                className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold transition-all"
+                style={{ backgroundColor: '#FFF200', color: '#0F0F0F' }}
               >
-                Go to Homepage
+                Go to Dashboard
               </a>
             </div>
           </div>

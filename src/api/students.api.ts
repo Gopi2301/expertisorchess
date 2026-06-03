@@ -19,4 +19,13 @@ export const studentsApi = {
 
   delete: (id: string) =>
     apiClient.delete(`/students/${id}`).then(r => r.data),
+
+  /** Claim a student invite token — authenticates the logged-in KC user to a student record */
+  claimInvite: (token: string) =>
+    apiClient.post<ApiResponse<Student>>('/students/claim-invite', { token }).then(r => r.data),
+
+  /** Resend an invite email to a student (CLIENT or ADMIN only) */
+  resendInvite: (studentId: string) =>
+    apiClient.post<ApiResponse<{ message: string; email: string }>>(`/students/${studentId}/resend-invite`).then(r => r.data),
 };
+

@@ -90,6 +90,9 @@ import { CoachDashboard } from './pages/coaches/CoachDashboard';
 import { ClientDashboard } from './pages/clients/ClientDashboard';
 import { StudentDashboard } from './pages/students/StudentDashboard';
 
+import { ClientCalendar } from './pages/clients/ClientCalendar';
+import { ClientStudentDetails } from './pages/clients/ClientStudentDetails';
+
 const ProtectedRoute: React.FC<{ children: React.ReactNode; roles?: string[] }> = ({ children, roles }) => {
   const { hasRole, loading } = useAuth();
   if (loading) return null;
@@ -139,6 +142,8 @@ const ProtectedApp: React.FC = () => (
           {/* CLIENT Routes */}
           <Route path="/client" element={<ProtectedRoute roles={['CLIENT']}><ClientDashboard /></ProtectedRoute>} />
           <Route path="/client/students" element={<ProtectedRoute roles={['CLIENT']}><StudentsList /></ProtectedRoute>} />
+          <Route path="/client/students/:id" element={<ProtectedRoute roles={['CLIENT']}><ClientStudentDetails /></ProtectedRoute>} />
+          <Route path="/client/calendar" element={<ProtectedRoute roles={['CLIENT']}><ClientCalendar /></ProtectedRoute>} />
           <Route path="/client/profile" element={<ProtectedRoute roles={['CLIENT']}><CoachProfile /></ProtectedRoute>} />
 
           {/* STUDENT Routes */}

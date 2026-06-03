@@ -237,6 +237,7 @@ export interface PaginationParams {
   status?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  [key: string]: any; // Allow arbitrary query parameters like client_id, coach_id, etc.
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -249,4 +250,28 @@ export interface DashboardSummary {
   activeClasses: number;
   revenueEstimate?: string;
   attendancePercentage?: number;
+}
+
+export interface ClientDashboardClass {
+  id: string;
+  class_id: string;
+  student_id: string;
+  status: Status;
+  class: Class;
+}
+
+export interface ClientDashboardPastClass extends ClientDashboardClass {
+  student: Student;
+  attendance: Attendance | null;
+}
+
+export interface ClientDashboardStudent extends Omit<Student, 'classes'> {
+  classes: ClientDashboardClass[];
+  attendance: Attendance[];
+}
+
+export interface ClientDashboardData extends Client {
+  students: ClientDashboardStudent[];
+  pastClasses: ClientDashboardPastClass[];
+  activePlans: Plan[];
 }
