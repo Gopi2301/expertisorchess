@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Users, Calendar, Video, ChevronRight, GraduationCap, Plus, Clock, ShieldCheck, CheckCircle, CreditCard, Activity } from 'lucide-react';
+import { Users, Calendar, Video, ChevronRight, Plus, Clock, ShieldCheck, CheckCircle, CreditCard, Activity } from 'lucide-react';
 import { clientsApi } from '../../api/clients.api';
 import { formatDateTime } from '../../utils/format';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { StatCard } from '../../components/ui/Card';
 import { StatusBadge, ChessLevelBadge, AttendanceBadge, ClassStatusBadge } from '../../components/ui/Badge';
-import type { ClientDashboardData, ClientDashboardClass } from '../../types';
+import type { ClientDashboardData } from '../../types';
 
 export const ClientDashboard: React.FC = () => {
   const [data, setData] = useState<ClientDashboardData | null>(null);

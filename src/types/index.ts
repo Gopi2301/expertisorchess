@@ -117,6 +117,7 @@ export interface Class {
   batch?: Batch;
   syllabus?: Syllabus;
   students?: StudentClass[];
+  attendance?: Attendance[];
   _count?: {
     students: number;
   };
@@ -270,7 +271,7 @@ export interface ClientDashboardStudent extends Omit<Student, 'classes'> {
   attendance: Attendance[];
 }
 
-export interface ClientDashboardData extends Client {
+export interface ClientDashboardData extends Omit<Client, 'students'> {
   students: ClientDashboardStudent[];
   pastClasses: ClientDashboardPastClass[];
   activePlans: Plan[];

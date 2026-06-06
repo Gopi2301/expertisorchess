@@ -1,13 +1,13 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Plus, Pencil, Trash2, Calendar, Search, CheckCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Calendar, Search, CheckCircle, Video } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Table } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { Input, Select } from '../../components/ui/Input';
-import { ClassStatusBadge } from '../../components/ui/Badge';
+import { ClassStatusBadge, AttendanceBadge } from '../../components/ui/Badge';
 import { Pagination } from '../../components/ui/Pagination';
 import { useApi } from '../../hooks/useApi';
 import { classesApi } from '../../api/classes.api';
@@ -34,9 +34,11 @@ export const ClassesList: React.FC = () => {
   const { addToast } = useContext(ToastContext);
   const { hasRole } = useAuth();
   const isAdmin = hasRole('SUPER_ADMIN');
+  const isCoach = hasRole('COACH');
+  const isStudent = hasRole('STUDENT');
 
   const { data, meta, loading, refetch, params, updateParams } = useApi<Class>({
-    fetcher: isAdmin ? classesApi.list : classesApi.listMy,
+    fetcher: isAdmin ? classesApi.list : (isStudent ? classesApi.listForStudent : classesApi.listMy),
   });
 
   const [coaches, setCoaches] = useState<Coach[]>([]);
@@ -157,10 +159,10 @@ export const ClassesList: React.FC = () => {
       <Table<Class>
         loading={loading} data={data} emptyMessage="No classes found."
         columns={[
-          { key: 'title', header: 'Title', render: row => (
+          { key: 'title', header: 'Title', render: (row: Class) => (
             <Link to={`${prefix}/classes/${row.id}`} className="font-medium text-text-primary hover:text-bg-brand">{row.title}</Link>
           ) },
-          { key: 'status', header: 'Status', render: row => (
+          { key: 'status', header: 'Status', render: (row: Class) => (
             <div className="flex flex-col gap-1 items-start">
               <ClassStatusBadge status={row.status} />
               {row.status === 'COMPLETED' && (
@@ -176,24 +178,48 @@ export const ClassesList: React.FC = () => {
               )}
             </div>
           ) },
-          { key: 'scheduled_start', header: 'Scheduled', render: row => formatDateTime(row.scheduled_start) },
-          { key: 'max_students', header: 'Capacity', render: row => `${row.max_students} students` },
+          { key: 'scheduled_start', header: 'Scheduled', render: (row: Class) => formatDateTime(row.scheduled_start) },
+          { key: 'max_students', header: 'Capacity', render: (row: Class) => `${row.max_students} students` },
           {
             key: 'batch',
             header: 'Batch',
-            render: row => row.batch ? (
+            render: (row: Class) => row.batch ? (
               <span className="text-xs px-2 py-0.5 bg-bg-brand/10 rounded-full text-bg-brand font-medium">
                 {row.batch.title}
               </span>
             ) : <span className="text-xs text-text-muted">—</span>
           },
-          { key: 'actions', header: '', render: row => (
+          {
+            key: 'attendance',
+            header: 'Attendance',
+            render: (row: Class) => {
+              const att = row.attendance?.[0];
+              if (!att) {
+                const isPast = new Date(row.scheduled_start) < new Date();
+                return isPast ? (
+                  <span className="text-xs text-text-muted">Not Marked</span>
+                ) : (
+                  <span className="text-xs text-text-muted">—</span>
+                );
+              }
+              return <AttendanceBadge status={att.attendance_status} />;
+            }
+          },
+          { key: 'actions', header: '', render: (row: Class) => (
             <div className="flex items-center justify-end gap-1">
-              {row.status === 'DRAFT' && (
+              {isStudent && row.meeting_link && (
+                <Button 
+                  onClick={() => window.open(row.meeting_link, '_blank')} 
+                  variant="primary" size="sm" icon={<Video size={14} />}
+                >
+                  Join
+                </Button>
+              )}
+              {(isAdmin || isCoach) && row.status === 'DRAFT' && (
                 <Button variant="ghost" size="sm" onClick={() => onPublish(row.id)} icon={<CheckCircle size={14} />}
                   className="text-text-success hover:bg-bg-success/10" />
               )}
-              {(isAdmin || row.status === 'DRAFT') && (
+              {(isAdmin || (isCoach && row.status === 'DRAFT')) && (
                 <Button variant="ghost" size="sm" onClick={() => openEdit(row)} icon={<Pencil size={14} />} />
               )}
               {isAdmin && (
@@ -202,7 +228,11 @@ export const ClassesList: React.FC = () => {
               )}
             </div>
           ) },
-        ]}
+        ].filter(col => {
+          if (isStudent && col.key === 'max_students') return false;
+          if (!isStudent && col.key === 'attendance') return false;
+          return true;
+        })}
       />
 
 

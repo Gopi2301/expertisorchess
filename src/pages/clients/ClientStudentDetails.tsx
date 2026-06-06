@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Calendar, Trophy, CheckCircle, Video, Mail, RefreshCw, UserCheck } from 'lucide-react';
+import { ArrowLeft, Calendar, Trophy, CheckCircle, Video, Mail, RefreshCw, UserCheck } from 'lucide-react';
 import { studentsApi } from '../../api/students.api';
 import { classesApi } from '../../api/classes.api';
 import { formatDateTime } from '../../utils/format';
