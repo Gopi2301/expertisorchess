@@ -43,6 +43,10 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/realms\//, /^\/auth\//, /^\/api\//]
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module'
       }
     })
   ],
