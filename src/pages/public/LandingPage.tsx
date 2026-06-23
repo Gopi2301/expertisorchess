@@ -4,6 +4,13 @@ import { Check } from 'lucide-react';
 import SectionContainer from '../../components/landing/SectionContainer';
 import LearningSystemSection from '../../components/landing/LearningSystemSection';
 import LearningPathSection from '../../components/landing/LearningPathSection';
+import SystemWorksSection from '../../components/landing/SystemWorksSection';
+import ResultsSection from '../../components/landing/ResultsSection';
+import CoachesSection from '../../components/landing/CoachesSection';
+import FaqSection from '@/components/landing/FaqSection';
+import BottomCtaSection from '../../components/landing/BottomCtaSection';
+import Footer from '../../components/landing/Footer';
+
 
 export const LandingPage: FunctionComponent = () => {
   const navigate = useNavigate();
@@ -195,6 +202,35 @@ export const LandingPage: FunctionComponent = () => {
         </div>
       </div>
       {/* System Works */}
+      <div className="w-full bg-black py-24 px-10 flex justify-center z-10">
+        <div className="w-full max-w-[1200px]">
+          <SystemWorksSection />
+        </div>
+      </div>
+      {/* Results */}
+      <div className="w-full bg-black py-24 px-10 flex justify-center z-10">
+        <div className="w-full max-w-[1200px]">
+          <ResultsSection />
+        </div>
+      </div>
+      {/* our coaches */}
+      <div className="w-full bg-black py-24 px-10 flex justify-center z-10">
+        <div className="w-full max-w-[1200px]">
+          <CoachesSection />
+        </div>
+      </div>
+      {/* FAQ */}
+      <div className="w-full bg-black py-24 px-10 flex justify-center z-10">
+        <div className="w-full max-w-[1200px]">
+          <FaqSection />
+        </div>
+      </div>
+      {/* Bottom CTA */}
+      <div className="w-full z-10">
+        <BottomCtaSection />
+      </div>
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
