@@ -1,4 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Fox+Marilyn:ital,wght@0,400&display=swap');
 @import "tailwindcss";
+
 
 @theme {
   /* ── Design Tokens ── */
@@ -29,6 +31,22 @@
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
+  --color-yellow: #fff200;
+  --color-silver: #bababa;
+  --color-darkslategray: #464646;
+  --color-darkgray: #a1a1a1;
+
+  --font-inter: "Inter", sans-serif;
+  --font-fox-marilyn: "Fox Marilyn", sans-serif;
+
+  --font-size-num-56: 56px;
+  --font-size-num-14: 14px;
+  --font-size-num-40: 40px;
+  --tracking-num--0_05: -0.05em;
+  --opacity-num-0_5: 0.5;
+
+  --line-height-num-64: 64px;
+
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -37,9 +55,15 @@
 }
 
 @layer base {
-  *, *::before, *::after { box-sizing: border-box; }
 
-  html, body {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
     @apply bg-bg text-text-primary font-sans antialiased;
     min-height: 100vh;
   }
@@ -49,10 +73,23 @@
     color: #FFF200;
   }
 
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: #1A1A1A; }
-  ::-webkit-scrollbar-thumb { background: #3D3D3D; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #555; }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #1A1A1A;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #3D3D3D;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
 }
 
 @layer utilities {
@@ -70,6 +107,7 @@
   .card-hover {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
+
   .card-hover:hover {
     transform: translateY(-1px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
@@ -78,23 +116,46 @@
   .animate-fade-in {
     animation: fadeIn 0.3s ease forwards;
   }
+
   .animate-slide-up {
     animation: slideUp 0.3s ease forwards;
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
   }
+
   @keyframes slideUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
+
   .animate-slide-in-right {
     animation: slideInRight 0.25s ease forwards;
   }
+
   @keyframes slideInRight {
-    from { opacity: 0; transform: translateX(40px); }
-    to   { opacity: 1; transform: translateX(0); }
+    from {
+      opacity: 0;
+      transform: translateX(40px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 }
