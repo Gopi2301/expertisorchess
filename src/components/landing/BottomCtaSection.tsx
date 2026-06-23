@@ -1,4 +1,5 @@
 import type { FunctionComponent } from 'react';
+// vercel trigger
 import { useNavigate } from 'react-router-dom';
 
 const BottomCtaSection: FunctionComponent = () => {
