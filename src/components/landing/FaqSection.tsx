@@ -40,9 +40,9 @@ const FaqSection: FunctionComponent = () => {
   return (
     <div className="w-full relative flex flex-col items-center py-0 px-4 md:px-[88px] box-border gap-16 text-center text-[12px] text-yellow font-inter">
       <div className="flex flex-col items-center">
-        <div className="flex flex-col items-start gap-3">
+        <div className="flex flex-col items-center gap-3">
           <div className="self-stretch relative tracking-[0.05em] font-medium text-center">FAQ</div>
-          <div className="flex flex-col items-center justify-center text-[40px] text-white">
+          <div className="flex flex-col items-center justify-center text-2xl md:text-3xl lg:text-[40px] text-white">
             <div className="self-stretch relative leading-[50px] text-center">
               <span className="font-semibold leading-[50px]">Frequently Asked <br /></span>
               <span className="font-fox-marilyn leading-[50px] text-yellow">Questions</span>
