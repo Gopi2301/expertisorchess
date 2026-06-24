@@ -1,6 +1,18 @@
-import type { FunctionComponent } from 'react';
+import { useRef, type FunctionComponent } from 'react';
+
+const SCROLL_AMOUNT = 320;
 
 const LearningPathSection: FunctionComponent = () => {
+	const scrollRef = useRef<HTMLDivElement>(null);
+
+	const scrollLeft = () => {
+		scrollRef.current?.scrollBy({ left: -SCROLL_AMOUNT, behavior: 'smooth' });
+	};
+
+	const scrollRight = () => {
+		scrollRef.current?.scrollBy({ left: SCROLL_AMOUNT, behavior: 'smooth' });
+	};
+
 	return (
 		<div className="w-full relative flex flex-col items-start py-0 px-4 md:px-[88px] box-border gap-8 md:gap-16 text-left text-[12px] text-yellow font-inter">
 			<div className="w-full max-w-[1264px] flex items-end justify-between relative isolate gap-4">
@@ -14,12 +26,12 @@ const LearningPathSection: FunctionComponent = () => {
 					</div>
 				</div>
 				<div className="flex items-center gap-2 z-[1] shrink-0">
-					<img className="h-8 w-8 md:h-10 md:w-10 relative object-cover cursor-pointer" src='/buttonLeft.svg' alt="" />
-					<img className="h-8 w-8 md:h-10 md:w-10 relative object-cover cursor-pointer" src='/buttonRight.svg' alt="" />
+					<img className="h-8 w-8 md:h-10 md:w-10 relative object-cover cursor-pointer" src='/buttonLeft.svg' alt="" onClick={scrollLeft} />
+					<img className="h-8 w-8 md:h-10 md:w-10 relative object-cover cursor-pointer" src='/buttonRight.svg' alt="" onClick={scrollRight} />
 				</div>
 				<img className="h-40 w-40 absolute !m-0 top-[-18px] right-0 object-cover z-[2] shrink-0 hidden lg:block" src='character.png' alt="" />
 			</div>
-			<div className="self-stretch min-h-[300px] overflow-x-auto shrink-0 flex items-start gap-5 text-xl md:text-[24px] text-white pb-4 scrollbar-thin">
+			<div ref={scrollRef} className="self-stretch min-h-[300px] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shrink-0 flex items-start gap-5 text-xl md:text-[24px] text-white pb-4">
 				<div className="self-stretch w-[280px] md:w-[301px] bg-[#171717] overflow-hidden shrink-0 flex flex-col items-center p-6 box-border relative isolate gap-2 min-h-[280px]">
 					<div className="self-stretch relative font-semibold z-[0] shrink-0">Assessment</div>
 					<div className="self-stretch relative text-sm md:text-base leading-6 text-gray-100 z-[1] shrink-0">We understand the child’s current level.</div>

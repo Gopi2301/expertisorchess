@@ -21,9 +21,9 @@ const LearningSystemSection: FunctionComponent = () => {
 					<img className="absolute top-[-17px] left-[61px] w-[130px] md:w-[171.2px] h-[130px] md:h-[171.2px] object-contain shrink-0" src="/Sticker.png" alt="" />
 				</div>
 			</div>
-			<div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-[1264px] text-xl md:text-[24px] text-white justify-center">
+			<div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-w-[1264px] text-xl md:text-[24px] text-white justify-center">
 				{/* Card 1: Live Expert Coaching */}
-				<Card className="bg-[#0D0D0D] border-[#484848] border-solid border-[1px] overflow-hidden flex flex-col items-center py-0 relative isolate gap-3 w-full">
+				<Card className="rounded-none bg-[#0D0D0D] border-[#484848] border-solid border-[1px] overflow-hidden flex flex-col items-center py-0 relative isolate gap-3 w-full">
 					<div className='flex flex-col gap-2 p-6 w-full'>
 						<div className="self-stretch relative font-semibold text-white z-[0] shrink-0">Live Expert Coaching</div>
 						<div className="self-stretch relative text-sm md:text-num-16 leading-num-24 text-gray-100 z-[1] shrink-0">Most academies stop at teaching. We continue the learning process beyond the classroom.</div>
@@ -32,7 +32,7 @@ const LearningSystemSection: FunctionComponent = () => {
 				</Card>
 
 				{/* Card 2: Recorded Lessons */}
-				<Card className="bg-[#0D0D0D] border-[#484848] border-solid border-[1px] overflow-hidden flex flex-col items-center py-0 relative isolate gap-3 w-full">
+				<Card className="rounded-none bg-[#0D0D0D] border-[#484848] border-solid border-[1px] overflow-hidden flex flex-col items-center py-0 relative isolate gap-3 w-full">
 					<div className='flex flex-col gap-2 p-6 w-full'>
 						<div className="self-stretch relative font-semibold z-[0] shrink-0">Recorded Lessons</div>
 						<div className="self-stretch relative text-sm md:text-num-16 leading-num-24 text-gray-100 z-[1] shrink-0">Never miss progress. Every session is available for revision.</div>
@@ -41,7 +41,7 @@ const LearningSystemSection: FunctionComponent = () => {
 				</Card>
 
 				{/* Card 3: AI Powered Practice Support */}
-				<Card className="bg-[#0D0D0D] border-[#484848] border-solid border-[1px] overflow-hidden flex flex-col items-center py-0 relative isolate gap-3 w-full lg:row-span-2 min-h-[450px]">
+				<Card className="rounded-none bg-[#0D0D0D] border-[#484848] border-solid border-[1px] overflow-hidden flex flex-col items-center py-0 relative isolate gap-3 w-full lg:row-span-2 min-h-[450px]">
 					<div className='flex flex-col gap-2 p-6 z-10 w-full'>
 						<div className="self-stretch relative font-semibold z-[0] shrink-0">AI Powered Practice</div>
 						<div className="self-stretch relative text-sm md:text-num-16 leading-num-24 text-gray-100 z-[1] shrink-0">Students can Practice positions anytime, Get guided analysis of moves, Reinforce lessons between classes.</div>
@@ -55,7 +55,7 @@ const LearningSystemSection: FunctionComponent = () => {
 				</Card>
 
 				{/* Card 4: Free Practice Tournaments */}
-				<Card className="bg-[#0D0D0D] border-[#484848] border-solid border-[1px] overflow-hidden flex flex-col items-center py-0 relative isolate gap-3 w-full">
+				<Card className="rounded-none bg-[#0D0D0D] border-[#484848] border-solid border-[1px] overflow-hidden flex flex-col items-center py-0 relative isolate gap-3 w-full">
 					<div className='flex flex-col gap-2 p-6 w-full'>
 						<div className="self-stretch relative font-semibold z-[0] shrink-0">Free Practice Tournaments</div>
 						<div className="self-stretch relative text-sm md:text-num-16 leading-num-24 text-gray-100 z-[1] shrink-0">Students apply skills in real competitive environments.</div>
@@ -64,7 +64,7 @@ const LearningSystemSection: FunctionComponent = () => {
 				</Card>
 
 				{/* Card 5: Coach Doubt Support */}
-				<Card className="bg-[#0D0D0D] border-[#484848] border-solid border-[1px] overflow-hidden flex flex-col items-center py-0 relative isolate gap-3 w-full">
+				<Card className="rounded-none bg-[#0D0D0D] border-[#484848] border-solid border-[1px] overflow-hidden flex flex-col items-center py-0 relative isolate gap-3 w-full">
 					<div className='flex flex-col gap-2 p-6 w-full'>
 						<div className="self-stretch relative font-semibold z-[0] shrink-0">Coach Doubt Support</div>
 						<div className="self-stretch relative text-sm md:text-num-16 leading-num-24 text-gray-100 z-[1] shrink-0">Doubts are solved when they arise not weeks later.</div>
@@ -73,7 +73,7 @@ const LearningSystemSection: FunctionComponent = () => {
 				</Card>
 
 				{/* Card 6: Monthly Progress Reports */}
-				<Card className="bg-[#0D0D0D] border-[#484848] border-solid border-[0.5px] overflow-hidden flex flex-col lg:flex-row items-stretch py-0 relative isolate gap-3 lg:col-span-3 text-num-16 text-gray-100 w-full min-h-[300px]">
+				<Card className="rounded-none bg-[#0D0D0D] border-[#484848] border-solid border-[0.5px] overflow-hidden flex flex-col lg:flex-row items-stretch py-0 relative isolate gap-3 lg:col-span-3 text-num-16 text-gray-100 w-full min-h-[300px]">
 					<div className="flex-1 flex flex-col gap-4 p-6 justify-center">
 						<div className="flex flex-col gap-2">
 							<div className="self-stretch relative text-xl md:text-[24px] font-semibold text-white z-[0] shrink-0">Monthly Progress Reports</div>

@@ -17,7 +17,7 @@ const ResultsSection: FunctionComponent = () => {
 				</div>
 			</div>
 			<div className="flex flex-col items-center gap-5 text-sm md:text-[18px] text-silver w-full">
-				<div className="w-full max-w-[1266px] grid grid-cols-1 lg:grid-cols-2 gap-5">
+				<div className="w-full max-w-[1266px] grid grid-cols-1 lg:grid-cols-2">
 					<div className="bg-[#171717] flex flex-col items-center justify-center p-6 md:p-8 relative isolate gap-6 min-h-[300px]">
 						<img className="w-10 h-6 relative z-[0] shrink-0" src="/comma.png" alt="" />
 						<div className="w-full max-w-[447px] relative leading-relaxed inline-block z-[1] shrink-0">

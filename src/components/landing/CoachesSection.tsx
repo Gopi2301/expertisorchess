@@ -21,7 +21,7 @@ const CoachesSection: FunctionComponent = () => {
         </div>
       </div>
 
-      <div className="w-full overflow-x-auto overflow-y-hidden shrink-0 flex items-stretch gap-5 pb-4 scrollbar-thin text-xl md:text-[24px] text-white">
+      <div className="w-full overflow-x-hidden overflow-y-hidden shrink-0 flex items-stretch gap-5 pb-4 text-xl md:text-[24px] text-white">
         {/* Coach 1 */}
         <div className="w-[280px] md:w-[360px] shrink-0 bg-[#171717] flex flex-col p-6 gap-6 rounded-lg">
           <img className="self-stretch h-[240px] md:h-[280px] w-full object-cover rounded" src="/coach1.png" alt="Vishal Singh" />
