@@ -13,9 +13,9 @@ import type { ChessLevel, StudentRelation } from '../../types';
 
 // ── Keycloak instance ─────────────────────────────────────────────────────────
 const kc = new Keycloak({
-  url: 'https://keycloak.virtuagrid.com/',
-  realm: 'chess',
-  clientId: 'chess-frontend',
+  url: import.meta.env.VITE_KEYCLOAK_URL,
+  realm: import.meta.env.VITE_KEYCLOAK_REALM,
+  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID,
 });
 
 // ── Types ─────────────────────────────────────────────────────────────────────
