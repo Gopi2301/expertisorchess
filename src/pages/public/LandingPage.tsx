@@ -146,31 +146,30 @@ export const LandingPage: FunctionComponent = () => {
           </div>
         </main>
 
-        {/* Stats Footer */}
         <footer className="w-full min-h-[65px] py-2 md:py-0 relative [background:linear-gradient(91.18deg,_rgba(0,_0,_0,_0.85),_rgba(34,_32,_13,_0.85)_19.64%,_rgba(63,_56,_0,_0.85)_50%,_rgba(34,_32,_13,_0.85)_76.99%,_rgba(0,_0,_0,_0.85))] text-center text-num-40 text-white font-inter z-10 flex items-center justify-center">
-          <div className="w-full max-w-[1200px] px-2 md:px-10 flex flex-wrap md:flex-nowrap items-center justify-between gap-6 md:gap-5">
-            <div className="flex flex-col items-center justify-center gap-[5px] flex-1 min-w-[120px]">
-              <b className="self-stretch relative font-inter font-bold text-2xl md:text-num-40 leading-none tracking-num--0_05 text-center text-transparent !bg-clip-text [background:linear-gradient(180deg,_#fffa99,_#dbd000)] [-webkit-background-clip:text] [-webkit-text-fill-color:transparent]">100+</b>
-              <div className="self-stretch relative text-xs md:text-num-14 opacity-num-0_5 text-center">Students Trained</div>
+          <div className="w-full max-w-[1200px] px-2 md:px-10 flex flex-row items-center justify-between gap-2 md:gap-5">
+            <div className="flex flex-col items-center justify-center gap-[5px] flex-1 min-w-0 md:min-w-[120px]">
+              <b className="self-stretch relative font-inter font-bold text-lg md:text-num-40 leading-none tracking-num--0_05 text-center text-transparent !bg-clip-text [background:linear-gradient(180deg,_#fffa99,_#dbd000)] [-webkit-background-clip:text] [-webkit-text-fill-color:transparent]">100+</b>
+              <div className="self-stretch relative text-[10px] md:text-num-14 opacity-num-0_5 text-center">Students Trained</div>
             </div>
-            <div className="flex flex-col items-center justify-center gap-[5px] flex-1 min-w-[120px]">
-              <b className="self-stretch relative font-inter font-bold text-2xl md:text-num-40 leading-none tracking-num--0_05 text-center text-transparent !bg-clip-text [background:linear-gradient(180deg,_#fffa99,_#dbd000)] [-webkit-background-clip:text] [-webkit-text-fill-color:transparent]">FIDE</b>
-              <div className="self-stretch relative text-xs md:text-num-14 opacity-num-0_5 text-center">Certified Coaches</div>
+            <div className="flex flex-col items-center justify-center gap-[5px] flex-1 min-w-0 md:min-w-[120px]">
+              <b className="self-stretch relative font-inter font-bold text-lg md:text-num-40 leading-none tracking-num--0_05 text-center text-transparent !bg-clip-text [background:linear-gradient(180deg,_#fffa99,_#dbd000)] [-webkit-background-clip:text] [-webkit-text-fill-color:transparent]">FIDE</b>
+              <div className="self-stretch relative text-[10px] md:text-num-14 opacity-num-0_5 text-center">Certified Coaches</div>
             </div>
-            <div className="flex flex-col items-center justify-center gap-[5px] flex-1 min-w-[150px]">
-              <b className="self-stretch relative font-inter font-bold text-2xl md:text-num-40 leading-none tracking-num--0_05 text-center text-transparent !bg-clip-text [background:linear-gradient(180deg,_#fffa99,_#dbd000)] [-webkit-background-clip:text] [-webkit-text-fill-color:transparent]">40+</b>
-              <div className="self-stretch relative text-xs md:text-num-14 opacity-num-0_5 text-center">Free Tournaments</div>
+            <div className="hidden md:flex flex-col items-center justify-center gap-[5px] flex-1 min-w-0 md:min-w-[150px]">
+              <b className="self-stretch relative font-inter font-bold text-lg md:text-num-40 leading-none tracking-num--0_05 text-center text-transparent !bg-clip-text [background:linear-gradient(180deg,_#fffa99,_#dbd000)] [-webkit-background-clip:text] [-webkit-text-fill-color:transparent]">40+</b>
+              <div className="self-stretch relative text-[10px] md:text-num-14 opacity-num-0_5 text-center">Free Tournaments</div>
             </div>
-            <div className="flex flex-col items-center justify-center gap-[5px] flex-1 min-w-[180px]">
+            <div className="flex flex-col items-center justify-center gap-[5px] flex-1 min-w-0 md:min-w-[180px]">
               <div className="flex items-center justify-center gap-1">
-                <b className="relative font-inter font-bold text-2xl md:text-num-40 leading-none tracking-num--0_05 text-center text-transparent !bg-clip-text [background:linear-gradient(180deg,_#fffa99,_#dbd000)] [-webkit-background-clip:text] [-webkit-text-fill-color:transparent]">4.8</b>
-                <img className="h-4 w-4 md:h-6 md:w-6 relative" alt="Star" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fffa99'><path d='M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/></svg>" />
+                <b className="relative font-inter font-bold text-lg md:text-num-40 leading-none tracking-num--0_05 text-center text-transparent !bg-clip-text [background:linear-gradient(180deg,_#fffa99,_#dbd000)] [-webkit-background-clip:text] [-webkit-text-fill-color:transparent]">4.8</b>
+                <img className="h-3.5 w-3.5 md:h-6 md:w-6 relative" alt="Star" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fffa99'><path d='M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/></svg>" />
               </div>
-              <div className="self-stretch relative text-xs md:text-num-14 opacity-num-0_5 text-center">{`Ratings`}</div>
+              <div className="self-stretch relative text-[10px] md:text-num-14 opacity-num-0_5 text-center">{`Ratings`}</div>
             </div>
-            <div className="flex flex-col items-center justify-center gap-[5px] flex-1 min-w-[100px]">
-              <b className="self-stretch relative font-inter font-bold text-2xl md:text-num-40 leading-none tracking-num--0_05 text-center text-transparent !bg-clip-text [background:linear-gradient(180deg,_#fffa99,_#dbd000)] [-webkit-background-clip:text] [-webkit-text-fill-color:transparent]">2</b>
-              <div className="self-stretch relative text-xs md:text-num-14 opacity-num-0_5 text-center">Countries</div>
+            <div className="hidden md:flex flex-col items-center justify-center gap-[5px] flex-1 min-w-0 md:min-w-[100px]">
+              <b className="self-stretch relative font-inter font-bold text-lg md:text-num-40 leading-none tracking-num--0_05 text-center text-transparent !bg-clip-text [background:linear-gradient(180deg,_#fffa99,_#dbd000)] [-webkit-background-clip:text] [-webkit-text-fill-color:transparent]">2</b>
+              <div className="self-stretch relative text-[10px] md:text-num-14 opacity-num-0_5 text-center">Countries</div>
             </div>
           </div>
         </footer>
