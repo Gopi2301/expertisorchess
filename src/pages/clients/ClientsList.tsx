@@ -64,7 +64,9 @@ export const ClientsList: React.FC = () => {
       addToast('Client deleted', 'success');
       setDeleteId(null);
       refetch();
-    } catch { addToast('Failed to delete', 'error'); }
+    } catch (e: any) {
+      addToast(e?.response?.data?.message ?? 'Failed to delete client', 'error');
+    }
   };
 
   return (

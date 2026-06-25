@@ -115,7 +115,9 @@ export const ClassesList: React.FC = () => {
       addToast('Class deleted', 'success');
       setDeleteId(null);
       refetch();
-    } catch { addToast('Failed to delete', 'error'); }
+    } catch (e: any) {
+      addToast(e?.response?.data?.message ?? 'Failed to delete class', 'error');
+    }
   };
 
   const onPublish = async (id: string) => {

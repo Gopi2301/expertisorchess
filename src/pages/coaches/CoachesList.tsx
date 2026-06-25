@@ -119,8 +119,8 @@ export const CoachesList: React.FC = () => {
       addToast('Coach deleted', 'success');
       setDeleteId(null);
       refetch();
-    } catch {
-      addToast('Failed to delete coach', 'error');
+    } catch (e: any) {
+      addToast(e?.response?.data?.message ?? 'Failed to delete coach', 'error');
     }
   };
 

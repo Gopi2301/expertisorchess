@@ -123,8 +123,8 @@ export const StudentsList: React.FC = () => {
       addToast('Student deleted', 'success');
       setDeleteId(null);
       refetch();
-    } catch {
-      addToast('Failed to delete', 'error');
+    } catch (e: any) {
+      addToast(e?.response?.data?.message ?? 'Failed to delete student', 'error');
     }
   };
 

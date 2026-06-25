@@ -113,8 +113,8 @@ export const BatchesList: React.FC = () => {
       addToast('Batch deleted', 'success');
       setDeleteId(null);
       refetch();
-    } catch {
-      addToast('Failed to delete batch', 'error');
+    } catch (e: any) {
+      addToast(e?.response?.data?.message ?? 'Failed to delete batch', 'error');
     }
   };
 

@@ -49,7 +49,7 @@ export const PlansList: React.FC = () => {
   const onDelete = async () => {
     if (!deleteId) return;
     try { await plansApi.delete(deleteId); addToast('Plan deleted', 'success'); setDeleteId(null); refetch(); }
-    catch { addToast('Failed', 'error'); }
+    catch (e: any) { addToast(e?.response?.data?.message ?? 'Failed to delete plan', 'error'); }
   };
 
   return (
