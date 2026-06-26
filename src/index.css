@@ -1,6 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Fox+Marilyn:ital,wght@0,400&display=swap');
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Fox Marilyn Local';
+  src: url('/fonts/FoxMarilynRegular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 
 @theme {
   /* ── Design Tokens ── */
@@ -38,6 +46,7 @@
 
   --font-inter: "Inter", sans-serif;
   --font-fox-marilyn: "Fox Marilyn", sans-serif;
+  --font-fox-marilyn-local: "Fox Marilyn Local", sans-serif;
 
   --font-size-num-56: 56px;
   --font-size-num-14: 14px;

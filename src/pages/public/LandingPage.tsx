@@ -85,9 +85,9 @@ export const LandingPage: FunctionComponent = () => {
               <div className="self-stretch flex flex-col items-center">
                 <div className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1">
                   <div className="relative leading-tight md:leading-num-64 font-semibold text-2xl md:text-5xl lg:text-num-56">Help Your Child Become More</div>
-                  <div className="relative leading-tight md:leading-num-64 font-fox-marilyn font-normal text-yellow text-2xl md:text-5xl lg:text-num-56">Focused,</div>
+                  <div className="relative leading-tight md:leading-num-64 font-fox-marilyn-local font-normal text-yellow text-2xl md:text-5xl lg:text-num-56">Focused,</div>
                 </div>
-                <div className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1 text-yellow font-fox-marilyn font-normal text-2xl md:text-5xl lg:text-num-56">
+                <div className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1 text-yellow font-fox-marilyn-local font-normal text-2xl md:text-5xl lg:text-num-56">
                   <div className="relative leading-tight md:leading-num-64">Confident</div>
                   <div className="relative leading-tight md:leading-num-64 font-semibold font-inter text-white">and</div>
                   <div className="relative leading-tight md:leading-num-64">Strategic</div>
