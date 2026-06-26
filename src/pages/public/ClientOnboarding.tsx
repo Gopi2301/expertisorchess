@@ -11,9 +11,9 @@ import apiClient from '../../api/client';
 
 // ── Keycloak instance (check-sso — does NOT force redirect) ─────────────────
 const kc = new Keycloak({
-  url: 'https://keycloak.virtuagrid.com/',
-  realm: 'chess',
-  clientId: 'chess-frontend',
+  url: import.meta.env.VITE_KEYCLOAK_URL,
+  realm: import.meta.env.VITE_KEYCLOAK_REALM,
+  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID,
 });
 
 // ── Types ─────────────────────────────────────────────────────────────────────

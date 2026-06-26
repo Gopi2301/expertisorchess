@@ -6,9 +6,9 @@ import Keycloak from 'keycloak-js';
  * in one place without touching AuthContext.
  */
 const keycloak = new Keycloak({
-  url: 'https://keycloak.virtuagrid.com/',
-  realm: 'chess',
-  clientId: 'chess-frontend',
+  url: import.meta.env.VITE_KEYCLOAK_URL,
+  realm: import.meta.env.VITE_KEYCLOAK_REALM,
+  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID,
 });
 
 export default keycloak;

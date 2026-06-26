@@ -20,7 +20,9 @@ import { CoachOnboarding } from './pages/public/CoachOnboarding';
 import { ClientOnboarding } from './pages/public/ClientOnboarding';
 import { StudentOnboarding } from './pages/public/StudentOnboarding';
 import { CoachProfile } from './pages/coaches/CoachProfile';
+import { LandingPage } from './pages/public/LandingPage';
 import { ShieldX, RefreshCw, LogOut } from 'lucide-react';
+
 
 // ─── Auth Gate ────────────────────────────────────────────────────────────────
 const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -110,6 +112,8 @@ const ProtectedApp: React.FC = () => (
         <Route element={<AppLayout />}>
           {/* Root Redirector */}
           <Route path="/" element={<RoleRedirect />} />
+          <Route path="/dashboard" element={<RoleRedirect />} />
+
 
           {/* SUPER_ADMIN Routes */}
           <Route path="/admin" element={<ProtectedRoute roles={['SUPER_ADMIN']}><AdminDashboard /></ProtectedRoute>} />
@@ -163,9 +167,11 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         {/* ── Public routes (no Keycloak login required) ── */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="/coach-apply" element={<CoachOnboarding />} />
         <Route path="/client-apply" element={<ClientOnboarding />} />
         <Route path="/student-apply" element={<StudentOnboarding />} />
+
 
         {/* ── All other routes require authentication ── */}
         <Route path="/*" element={<ProtectedApp />} />
